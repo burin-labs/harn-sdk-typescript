@@ -8,5 +8,12 @@
   "types": "./dist/index.d.ts",
   "files": ["dist", "README.md", "LICENSE"],
   "repository": { "type": "git", "url": "git+https://github.com/burin-labs/harn-sdk-typescript.git" },
-  "publishConfig": { "access": "public" }
+  "publishConfig": { "access": "public" },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
 }
