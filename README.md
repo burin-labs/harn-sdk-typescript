@@ -50,11 +50,16 @@ for await (const event of client.streamTaskEvents(task.id)) {
 pnpm install
 pnpm generate:types
 pnpm typecheck
+pnpm check:examples
 pnpm test
 pnpm build
 ```
 
 The generated OpenAPI types live in `src/generated/openapi.ts`. Regenerate them after updating `spec/openapi.yaml`.
+
+## Publishing
+
+Release and npm setup instructions live in [`docs/PUBLISHING.md`](docs/PUBLISHING.md). The short version: first publish creates the npm package page, then configure npm trusted publishing for `.github/workflows/publish.yml` and use the GitHub release workflows for routine version bumps and publishes.
 
 ## License
 
