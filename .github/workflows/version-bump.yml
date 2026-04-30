@@ -1,0 +1,86 @@
+name: Version Bump PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "npm version argument when explicit_version is empty"
+        required: true
+        default: prerelease
+        type: choice
+        options:
+          - prerelease
+          - prepatch
+          - preminor
+          - premajor
+          - patch
+          - minor
+          - major
+      preid:
+        description: "Prerelease identifier for prerelease/prepatch/preminor/premajor"
+        required: false
+        default: alpha
+        type: string
+      explicit_version:
+        description: "Optional exact semver version, for example 0.1.0-alpha.1"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    name: Open Version Bump PR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.31.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Bump package version
+        id: bump
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.explicit_version }}" ]; then
+            npm version "${{ inputs.explicit_version }}" --no-git-tag-version
+          elif [[ "${{ inputs.bump }}" == pre* || "${{ inputs.bump }}" == "prerelease" ]]; then
+            npm version "${{ inputs.bump }}" --preid "${{ inputs.preid }}" --no-git-tag-version
+          else
+            npm version "${{ inputs.bump }}" --no-git-tag-version
+          fi
+          VERSION="$(node -p "require('./package.json').version")"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - run: pnpm typecheck
+      - run: pnpm check:examples
+      - run: pnpm test
+      - run: pnpm build
+      - name: Create release branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.bump.outputs.version }}"
+          BRANCH="release/v${VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add package.json
+          git commit -m "chore: release v${VERSION}"
+          git push --set-upstream origin "$BRANCH"
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "Release v${VERSION}" \
+            --body "Bumps @burin-labs/harn to v${VERSION}. After this PR merges, run the Create Release Tag workflow for v${VERSION}."
+        env:
+          GH_TOKEN: ${{ github.token }}
