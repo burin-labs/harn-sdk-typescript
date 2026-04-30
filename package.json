@@ -1,19 +1,45 @@
 {
-  "name": "@burin-labs/harn-sdk",
-  "version": "0.0.0",
+  "name": "@burin-labs/harn",
+  "version": "0.1.0-alpha.0",
   "description": "TypeScript SDK for the Harn Agents API",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist", "README.md", "LICENSE"],
-  "repository": { "type": "git", "url": "git+https://github.com/burin-labs/harn-sdk-typescript.git" },
-  "publishConfig": { "access": "public" },
-  "scripts": {
-    "build": "tsc",
-    "typecheck": "tsc --noEmit"
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
+  "files": [
+    "dist",
+    "spec/openapi.yaml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check:examples": "tsc --noEmit --target ES2022 --module ESNext --moduleResolution bundler --lib ES2022,DOM,DOM.Iterable --types node --strict examples/*.ts",
+    "generate:types": "openapi-typescript spec/openapi.yaml -o src/generated/openapi.ts",
+    "prepack": "pnpm build",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/burin-labs/harn-sdk-typescript.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "alpha"
+  },
+  "sideEffects": false,
   "devDependencies": {
-    "typescript": "^5.5.4"
+    "@types/node": "^25.6.0",
+    "openapi-typescript": "^7.13.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.5"
   }
 }
