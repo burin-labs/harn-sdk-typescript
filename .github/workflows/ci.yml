@@ -36,3 +36,17 @@ jobs:
           name: dist-node-${{ matrix.node }}
           path: dist/
           if-no-files-found: error
+
+  ci-status:
+    name: CI status
+    if: always()
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for failures
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "One or more CI jobs failed"
+            exit 1
+          fi
+          echo "All CI jobs passed or were skipped"
