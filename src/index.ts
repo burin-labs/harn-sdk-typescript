@@ -34,6 +34,7 @@ export type {
   HarnAuthContext,
   OAuth2DeviceAuthorization,
   OAuth2DeviceFlowOptions,
+  OAuth2DevicePollOptions,
   OAuth2DeviceToken,
 } from "./auth.js";
 export type {

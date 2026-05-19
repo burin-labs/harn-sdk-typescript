@@ -25,6 +25,7 @@ export interface ApprovalWebhookOptions {
   signature?: string | null;
   toleranceSeconds?: number;
   timestamp?: string | null;
+  now?: () => number;
 }
 
 export function isApprovalRequired(task: Pick<Task, "status">): boolean {
@@ -88,11 +89,13 @@ export async function parseApprovalWebhook(
     }
     await verifyHmacSha256(raw, options.secret, options.signature);
   }
-  if (options.toleranceSeconds !== undefined && !options.timestamp) {
+  const signedTimestamp = signedTimestampSeconds(options.signature) ?? options.timestamp;
+  if (options.toleranceSeconds !== undefined && !signedTimestamp) {
     throw new Error("Approval webhook timestamp is required when a tolerance is configured.");
   }
-  if (options.timestamp && options.toleranceSeconds !== undefined) {
-    const ageSeconds = Math.abs(Date.now() / 1000 - Number(options.timestamp));
+  if (signedTimestamp && options.toleranceSeconds !== undefined) {
+    const now = options.now ?? Date.now;
+    const ageSeconds = Math.abs(now() / 1000 - Number(signedTimestamp));
     if (!Number.isFinite(ageSeconds) || ageSeconds > options.toleranceSeconds) {
       throw new Error("Approval webhook timestamp is outside the accepted tolerance.");
     }
@@ -106,19 +109,25 @@ export async function parseApprovalWebhook(
   };
 }
 
-async function verifyHmacSha256(payload: string, secret: string, signature: string): Promise<void> {
+async function verifyHmacSha256(
+  payload: string,
+  secret: string,
+  signature: string,
+): Promise<void> {
   const subtle = globalThis.crypto?.subtle;
   if (!subtle) {
     throw new Error("WebCrypto subtle crypto is required to verify webhook signatures.");
   }
 
-  const normalized = signature.startsWith("sha256=") ? signature.slice("sha256=".length) : signature;
+  const signatureTimestamp = signedTimestampSeconds(signature);
+  const signingPayload = signatureTimestamp ? `${signatureTimestamp}.${payload}` : payload;
   const key = await subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, [
     "sign",
   ]);
-  const digest = await subtle.sign("HMAC", key, new TextEncoder().encode(payload));
+  const digest = await subtle.sign("HMAC", key, new TextEncoder().encode(signingPayload));
   const expected = bytesToHex(new Uint8Array(digest));
-  if (!constantTimeEqual(expected, normalized)) {
+  const candidates = signatureCandidates(signature);
+  if (!candidates.some((candidate) => constantTimeEqual(expected, candidate))) {
     throw new Error("Approval webhook signature verification failed.");
   }
 }
@@ -156,12 +165,39 @@ function bytesToHex(bytes: Uint8Array): string {
 }
 
 function constantTimeEqual(left: string, right: string): boolean {
-  if (left.length !== right.length) {
-    return false;
-  }
+  const normalizedLeft = left.toLowerCase();
+  const normalizedRight = right.toLowerCase();
   let result = 0;
-  for (let index = 0; index < left.length; index += 1) {
-    result |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  const length = Math.max(normalizedLeft.length, normalizedRight.length);
+  for (let index = 0; index < length; index += 1) {
+    result |= (normalizedLeft.charCodeAt(index) || 0) ^ (normalizedRight.charCodeAt(index) || 0);
   }
-  return result === 0;
+  return result === 0 && normalizedLeft.length === normalizedRight.length;
+}
+
+function signedTimestampSeconds(signature: string | null | undefined): string | undefined {
+  if (!signature?.includes(",")) {
+    return undefined;
+  }
+  return signatureFields(signature).get("t");
+}
+
+function signatureCandidates(signature: string): string[] {
+  const trimmed = signature.trim();
+  if (trimmed.includes(",")) {
+    const fields = signatureFields(trimmed);
+    return [fields.get("v1"), fields.get("sha256")].filter((value): value is string => Boolean(value));
+  }
+  return [trimmed.startsWith("sha256=") ? trimmed.slice("sha256=".length) : trimmed];
+}
+
+function signatureFields(signature: string): Map<string, string> {
+  const fields = new Map<string, string>();
+  for (const segment of signature.split(",")) {
+    const [key, ...rest] = segment.trim().split("=");
+    if (key && rest.length > 0) {
+      fields.set(key, rest.join("="));
+    }
+  }
+  return fields;
 }
