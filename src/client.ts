@@ -94,7 +94,7 @@ export class HarnClient {
   constructor(options: HarnClientOptions = {}) {
     this.baseUrl = new URL(options.baseUrl ?? "https://api.harnlang.com");
     this.protocolVersion = options.protocolVersion ?? HARN_PROTOCOL_VERSION;
-    this.fetchImpl = options.fetch ?? globalThis.fetch;
+    this.fetchImpl = options.fetch ?? globalThis.fetch?.bind(globalThis);
     if (!this.fetchImpl) {
       throw new Error("A fetch implementation is required in this runtime.");
     }
@@ -159,7 +159,7 @@ export class HarnClient {
   listSessions(options?: ListOptions & { workspaceId?: string }): Promise<SessionList> {
     return this.request("GET", "/v1/sessions", {
       ...options,
-      query: { workspace_id: options?.workspaceId, ...pageQuery(options) },
+      query: listQuery(options, { workspace_id: options?.workspaceId }),
     });
   }
 
@@ -266,7 +266,7 @@ export class HarnClient {
   listTasks(options?: ListOptions & { workspaceId?: string; sessionId?: string }): Promise<TaskList> {
     return this.request("GET", "/v1/tasks", {
       ...options,
-      query: { workspace_id: options?.workspaceId, session_id: options?.sessionId, ...pageQuery(options) },
+      query: listQuery(options, { workspace_id: options?.workspaceId, session_id: options?.sessionId }),
     });
   }
 
@@ -338,12 +338,11 @@ export class HarnClient {
   ): Promise<ArtifactList> {
     return this.request("GET", "/v1/artifacts", {
       ...options,
-      query: {
+      query: listQuery(options, {
         workspace_id: options?.workspaceId,
         session_id: options?.sessionId,
         task_id: options?.taskId,
-        ...pageQuery(options),
-      },
+      }),
     });
   }
 
@@ -423,7 +422,7 @@ export class HarnClient {
   listMemories(options?: ListOptions & { workspaceId?: string; sessionId?: string }): Promise<MemoryList> {
     return this.request("GET", "/v1/memories", {
       ...options,
-      query: { workspace_id: options?.workspaceId, session_id: options?.sessionId, ...pageQuery(options) },
+      query: listQuery(options, { workspace_id: options?.workspaceId, session_id: options?.sessionId }),
     });
   }
 
@@ -442,7 +441,7 @@ export class HarnClient {
   listVaults(options?: ListOptions & { workspaceId?: string }): Promise<VaultList> {
     return this.request("GET", "/v1/vaults", {
       ...options,
-      query: { workspace_id: options?.workspaceId, ...pageQuery(options) },
+      query: listQuery(options, { workspace_id: options?.workspaceId }),
     });
   }
 
@@ -457,7 +456,7 @@ export class HarnClient {
   listConnectors(options?: ListOptions & { workspaceId?: string }): Promise<ConnectorList> {
     return this.request("GET", "/v1/connectors", {
       ...options,
-      query: { workspace_id: options?.workspaceId, ...pageQuery(options) },
+      query: listQuery(options, { workspace_id: options?.workspaceId }),
     });
   }
 
@@ -479,7 +478,7 @@ export class HarnClient {
   listOutcomes(options?: ListOptions & { taskId?: string }): Promise<OutcomeList> {
     return this.request("GET", "/v1/outcomes", {
       ...options,
-      query: { task_id: options?.taskId, ...pageQuery(options) },
+      query: listQuery(options, { task_id: options?.taskId }),
     });
   }
 
@@ -600,6 +599,10 @@ function authFromTokenOptions(options: HarnClientOptions): AuthProvider | undefi
 
 function pageQuery(options?: ListOptions): Query {
   return { limit: options?.limit, cursor: options?.cursor };
+}
+
+function listQuery(options: ListOptions | undefined, query: Query): Query {
+  return { ...query, ...pageQuery(options) };
 }
 
 function mergeHeaders(...inputs: (HeadersInit | undefined)[]): Headers {

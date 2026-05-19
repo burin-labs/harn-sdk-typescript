@@ -40,9 +40,27 @@ for await (const event of client.streamTaskEvents(task.id)) {
 - API key, bearer token, browser OIDC, and OAuth2 device-flow auth helpers.
 - SSE parsing for browser and Node `fetch` streams.
 - WebSocket URL/connection helpers for task event streams.
-- Polling and webhook helpers for approval-required task states.
+- Polling and webhook helpers for approval-required task states, including
+  Harn Cloud outbound webhook signature verification.
 - Tool definition helpers for agent-side handler code.
 - Examples in `examples/` for quickstart, streaming, device auth, approvals, tool handling, and webhook receive.
+
+## Harn Cloud Webhooks
+
+`parseApprovalWebhook` verifies Harn Cloud outbound webhook deliveries when you
+pass the endpoint signing secret, `X-Harn-Signature`, and an optional replay
+tolerance:
+
+```ts
+const webhook = await parseApprovalWebhook(rawBody, {
+  secret: process.env.HARN_WEBHOOK_SECRET,
+  signature: request.headers.get("x-harn-signature"),
+  toleranceSeconds: 300,
+});
+```
+
+Signatures cover the timestamp and raw request body. Pass the exact body bytes
+received from your HTTP framework, before JSON parsing.
 
 ## Development
 

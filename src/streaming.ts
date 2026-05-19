@@ -107,7 +107,7 @@ function parseSseLine(line: string, current: BufferedSseEvent): SseEvent | undef
     current.id = value;
   } else if (field === "retry") {
     const retry = Number(value);
-    if (Number.isFinite(retry)) {
+    if (Number.isInteger(retry) && retry >= 0) {
       current.retry = retry;
     }
   }

@@ -35,6 +35,22 @@ describe("streaming helpers", () => {
     expect(events).toEqual([{ ok: true }]);
   });
 
+  it("ignores invalid retry fields", async () => {
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode("retry: 1.5\ndata: first\n\nretry: 2500\ndata: second\n\n"));
+        controller.close();
+      },
+    });
+
+    const events = [];
+    for await (const event of parseSseStream(stream)) {
+      events.push(event);
+    }
+
+    expect(events).toEqual([{ data: "first" }, { retry: 2500, data: "second" }]);
+  });
+
   it("builds websocket URLs for task streams", () => {
     expect(String(taskEventsWebSocketUrl("https://api.example.test", "task/1"))).toBe(
       "wss://api.example.test/v1/tasks/task%2F1/stream",

@@ -52,15 +52,15 @@ export interface OAuth2DeviceToken {
 
 export async function oauth2DeviceFlow(options: OAuth2DeviceFlowOptions): Promise<{
   authorization: OAuth2DeviceAuthorization;
-  pollForToken: (pollOptions?: { signal?: AbortSignal; intervalMs?: number }) => Promise<OAuth2DeviceToken>;
+  pollForToken: (pollOptions?: OAuth2DevicePollOptions) => Promise<OAuth2DeviceToken>;
   auth: AuthProvider;
 }> {
-  const fetchImpl = options.fetch ?? globalThis.fetch;
+  const fetchImpl = options.fetch ?? globalThis.fetch?.bind(globalThis);
   if (!fetchImpl) {
     throw new Error("A fetch implementation is required for OAuth2 device flow.");
   }
 
-  const discoveryUrl = new URL("/.well-known/openid-configuration", ensureTrailingSlash(options.issuerUrl));
+  const discoveryUrl = new URL(".well-known/openid-configuration", ensureTrailingSlash(options.issuerUrl));
   const discovery = await fetchJson<{
     device_authorization_endpoint?: string;
     token_endpoint?: string;
@@ -110,12 +110,14 @@ async function pollDeviceToken(
   fetchImpl: typeof fetch,
   authorization: OAuth2DeviceAuthorization,
   clientId: string,
-  options: { signal?: AbortSignal; intervalMs?: number },
+  options: OAuth2DevicePollOptions,
 ): Promise<OAuth2DeviceToken> {
   let intervalMs = options.intervalMs ?? (authorization.interval ?? 5) * 1000;
-  const expiresAt = Date.now() + authorization.expires_in * 1000;
+  const now = options.now ?? Date.now;
+  const delay = options.sleep ?? sleep;
+  const expiresAt = now() + authorization.expires_in * 1000;
 
-  while (Date.now() < expiresAt) {
+  while (now() < expiresAt) {
     const body = new URLSearchParams({
       grant_type: "urn:ietf:params:oauth:grant-type:device_code",
       device_code: authorization.device_code,
@@ -134,18 +136,25 @@ async function pollDeviceToken(
       return payload as OAuth2DeviceToken;
     }
     if (payload.error === "authorization_pending") {
-      await sleep(intervalMs, options.signal);
+      await delay(intervalMs, options.signal);
       continue;
     }
     if (payload.error === "slow_down") {
       intervalMs += 5000;
-      await sleep(intervalMs, options.signal);
+      await delay(intervalMs, options.signal);
       continue;
     }
     throw new Error(payload.error ?? `OAuth2 token request failed with HTTP ${response.status}`);
   }
 
   throw new Error("OAuth2 device authorization expired before a token was issued.");
+}
+
+export interface OAuth2DevicePollOptions {
+  signal?: AbortSignal;
+  intervalMs?: number;
+  now?: () => number;
+  sleep?: (ms: number, signal?: AbortSignal) => Promise<void>;
 }
 
 async function fetchJson<T>(fetchImpl: typeof fetch, url: URL, init: RequestInit): Promise<T> {
