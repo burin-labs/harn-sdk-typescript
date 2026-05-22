@@ -5,9 +5,10 @@ info:
   summary: OpenAPI description for the Harn Agents Protocol v1 REST surface.
   description: |
     Machine-readable REST and SSE contract for managed Harn agents. The
-    narrative protocol requirements live in `spec/AGENTS_PROTOCOL.md`; this
-    document fixes the v1 paths, request bodies, response envelopes, and
-    resource schemas used by SDKs and conformance fixtures.
+    narrative protocol requirements are published as the Harn Agents Protocol
+    v1 specification. This document fixes the v1 paths, request bodies,
+    response envelopes, and resource schemas used by SDKs and conformance
+    fixtures.
   license:
     name: Apache-2.0
     url: https://www.apache.org/licenses/LICENSE-2.0

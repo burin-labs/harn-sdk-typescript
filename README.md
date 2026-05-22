@@ -1,14 +1,20 @@
 # harn-sdk-typescript
 
-TypeScript SDK for the [Harn Agents API](https://github.com/burin-labs/harn-cloud/issues/72).
+TypeScript SDK for the Harn Agents API.
 
-The package ships as `@burin-labs/harn` on the npm alpha track. It vendors the canonical OpenAPI 3.1 contract in `spec/openapi.yaml` and generates TypeScript schema/path types with `openapi-typescript`.
+The package name is `@burin-labs/harn`. This repo vendors the OpenAPI 3.1
+contract in `spec/openapi.yaml` and generates TypeScript schema/path types with
+`openapi-typescript`.
 
 ## Install
+
+After the first alpha is published:
 
 ```sh
 pnpm add @burin-labs/harn@alpha
 ```
+
+For SDK development, clone this repo and run `pnpm install`.
 
 ## Quickstart
 
@@ -33,7 +39,7 @@ for await (const event of client.streamTaskEvents(task.id)) {
 }
 ```
 
-## Included Surface
+## What is included
 
 - Typed resource aliases generated from `spec/openapi.yaml`.
 - `HarnClient` wrappers for every v1 REST operation.
@@ -47,9 +53,10 @@ for await (const event of client.streamTaskEvents(task.id)) {
   Harn Cloud outbound webhook signature verification.
 - Session truncation and local permission-request response helpers.
 - Tool definition helpers for agent-side handler code.
-- Examples in `examples/` for quickstart, streaming, device auth, approvals, tool handling, and webhook receive.
+- Examples in `examples/` for quickstart, streaming, device auth, approvals,
+  tool handling, and webhook receive.
 
-## Harn Cloud Webhooks
+## Harn Cloud webhooks
 
 `parseApprovalWebhook` verifies Harn Cloud outbound webhook deliveries when you
 pass the endpoint signing secret, `X-Harn-Signature`, and an optional replay
@@ -78,11 +85,13 @@ pnpm test
 pnpm build
 ```
 
-The generated OpenAPI types live in `src/generated/openapi.ts`. Regenerate them after updating `spec/openapi.yaml`.
+The generated OpenAPI types live in `src/generated/openapi.ts`. Regenerate them
+after updating `spec/openapi.yaml`.
 
 ## Publishing
 
-Release and npm setup instructions live in [`docs/PUBLISHING.md`](docs/PUBLISHING.md). The short version: first publish creates the npm package page, then configure npm trusted publishing for `.github/workflows/publish.yml` and use the GitHub release workflows for routine version bumps and publishes.
+Release and npm setup instructions live in
+[`docs/PUBLISHING.md`](docs/PUBLISHING.md).
 
 ## License
 

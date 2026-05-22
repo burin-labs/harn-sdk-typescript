@@ -2,11 +2,13 @@
 
 This repo publishes `@burin-labs/harn` to npm from GitHub Actions.
 
-## First Publish
+## First publish
 
-npm does not have a separate package-create button for this case. A scoped package page is created by the first successful publish of a package whose `package.json` name is under that scope.
+npm creates a scoped package page on the first successful publish. There is no
+separate package-create step.
 
-Because npm trusted publishing is configured from an existing package's settings page, bootstrap the first version with one of these paths:
+Trusted publishing is configured from an existing package page, so bootstrap the
+first version with one of these paths.
 
 1. Manual local publish:
 
@@ -16,6 +18,7 @@ Because npm trusted publishing is configured from an existing package's settings
    pnpm install --frozen-lockfile
    pnpm typecheck
    pnpm check:examples
+   pnpm check:tests
    pnpm test
    pnpm build
    npm pack --dry-run
@@ -29,9 +32,10 @@ Because npm trusted publishing is configured from an existing package's settings
    - Push a release tag or run the `Publish to npm` workflow for an existing tag.
    - Delete the token after trusted publishing is configured.
 
-For scoped packages, `--access public` is required; otherwise npm defaults scoped packages to private visibility.
+For scoped packages, `--access public` is required; otherwise npm defaults
+scoped packages to private visibility.
 
-## Configure Trusted Publishing
+## Configure trusted publishing
 
 After the first publish creates the package page:
 
@@ -47,7 +51,7 @@ After the first publish creates the package page:
 
 Trusted publishing uses OIDC, so routine releases do not need long-lived npm tokens.
 
-## Routine Release
+## Routine release
 
 1. Run the `Version Bump PR` workflow.
    - Use `prerelease` with `preid=alpha` for alpha releases.
@@ -60,11 +64,12 @@ Trusted publishing uses OIDC, so routine releases do not need long-lived npm tok
 The publish workflow derives the npm dist-tag from the package version:
 
 - Stable versions publish as `latest`.
-- Prerelease versions publish to their prerelease identifier, for example `0.1.0-alpha.1` publishes as `alpha`.
+- Prerelease versions publish to their prerelease identifier, for example
+  `0.1.0-alpha.1` publishes as `alpha`.
 
-## Local Release Helpers
+## Local release helpers
 
-The local scripts are intentionally thin wrappers:
+The local scripts mirror the workflow steps:
 
 ```sh
 pnpm version:alpha
@@ -76,8 +81,11 @@ pnpm publish:alpha
 pnpm publish:latest
 ```
 
-Prefer the GitHub workflows for official releases so the published artifact has provenance and a reproducible CI trail.
+Use GitHub workflows for official releases. They attach npm provenance and leave
+a CI record.
 
 ## Recovery
 
-If a publish fails because trusted publishing is not configured yet, use the first-publish bootstrap path above. If a publish fails after the tag already exists, fix the workflow or npm configuration and rerun `Publish to npm` with the existing tag.
+If trusted publishing is not configured yet, use the first-publish bootstrap path
+above. If the tag already exists, fix the workflow or npm configuration and
+rerun `Publish to npm` with the existing tag.
