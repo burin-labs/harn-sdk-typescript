@@ -41,6 +41,7 @@ jobs:
           RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
       - run: pnpm typecheck
       - run: pnpm check:examples
+      - run: pnpm check:tests
       - run: pnpm test
       - run: pnpm build
       - run: npm pack --dry-run

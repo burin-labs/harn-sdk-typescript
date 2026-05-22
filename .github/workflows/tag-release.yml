@@ -47,6 +47,7 @@ jobs:
           echo "version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
       - run: pnpm typecheck
       - run: pnpm check:examples
+      - run: pnpm check:tests
       - run: pnpm test
       - run: pnpm build
       - name: Push tag

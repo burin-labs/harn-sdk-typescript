@@ -63,6 +63,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
       - run: pnpm typecheck
       - run: pnpm check:examples
+      - run: pnpm check:tests
       - run: pnpm test
       - run: pnpm build
       - name: Create release branch
