@@ -21,6 +21,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check:examples": "tsc --noEmit --target ES2022 --module ESNext --moduleResolution bundler --lib ES2022,DOM,DOM.Iterable --types node --strict examples/*.ts",
+    "check:tests": "tsc --noEmit --target ES2022 --module ESNext --moduleResolution bundler --lib ES2022,DOM,DOM.Iterable --types node --strict test/*.ts",
     "generate:types": "openapi-typescript spec/openapi.yaml -o src/generated/openapi.ts",
     "pack:dry-run": "npm pack --dry-run",
     "prepack": "pnpm build",

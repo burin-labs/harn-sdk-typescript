@@ -42,6 +42,7 @@ export type {
   ListOptions,
   RequestOptions,
   StreamOptions,
+  WorkspaceFileOptions,
 } from "./client.js";
 export type { SseEvent } from "./streaming.js";
 export type {
@@ -56,42 +57,5 @@ export type {
   ToolHandler,
   ToolResult,
 } from "./tools.js";
-export type {
-  A2aAgentCard,
-  Artifact,
-  Branch,
-  CancelTaskRequest,
-  Connector,
-  CreateBranchRequest,
-  CreateMemoryRequest,
-  CreatePersonaRequest,
-  CreateSessionRequest,
-  CreateVaultRequest,
-  CreateWorkspaceRequest,
-  Discovery,
-  ErrorResponse,
-  Event,
-  ForkSessionRequest,
-  HarnAgentCard,
-  JsonObject,
-  JsonValue,
-  Memory,
-  Message,
-  MessageInput,
-  Outcome,
-  Part,
-  Persona,
-  Quota,
-  Receipt,
-  Session,
-  Skill,
-  SubmitTaskRequest,
-  Task,
-  TaskStatus,
-  UpdatePersonaRequest,
-  UpdateSessionRequest,
-  UpdateWorkspaceRequest,
-  Vault,
-  Workspace,
-} from "./types.js";
+export type * from "./types.js";
 export type { components, operations, paths } from "./generated/openapi.js";

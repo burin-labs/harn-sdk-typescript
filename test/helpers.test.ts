@@ -5,11 +5,13 @@ import {
   isApprovalRequired,
   oauth2DeviceFlow,
   parseApprovalWebhook,
+  pollForApproval,
   runTool,
   textPart,
   toolCallPart,
   toolResultPart,
 } from "../src/index.js";
+import type { HarnClient, Task } from "../src/index.js";
 
 describe("helpers", () => {
   it("creates bearer auth headers from API keys", async () => {
@@ -70,6 +72,15 @@ describe("helpers", () => {
     await expect(parseApprovalWebhook({}, { toleranceSeconds: 300 })).rejects.toThrow("timestamp is required");
   });
 
+  it("requires raw webhook bodies before verifying signatures", async () => {
+    await expect(
+      parseApprovalWebhook(
+        { task: { object: "task", status: "INPUT_REQUIRED" } },
+        { secret: "whsec_test", signature: "sha256=unused" },
+      ),
+    ).rejects.toThrow("raw request body");
+  });
+
   it("defines and runs typed tools", async () => {
     const tool = defineTool<{ value: number }, { doubled: number }>({
       name: "double",
@@ -126,6 +137,25 @@ describe("helpers", () => {
       status: "ok",
       visibility: "internal",
     });
+  });
+
+  it("polls approval states with injectable timers", async () => {
+    const sleeps: number[] = [];
+    const statuses: Task["status"][] = ["SUBMITTED", "INPUT_REQUIRED"];
+    const client = {
+      getTask: async () => ({ object: "task", status: statuses.shift() ?? "INPUT_REQUIRED" }),
+    } as unknown as HarnClient;
+
+    const task = await pollForApproval(client, "task_1", {
+      intervalMs: 25,
+      now: () => 0,
+      sleep: async (ms) => {
+        sleeps.push(ms);
+      },
+    });
+
+    expect(task.status).toBe("INPUT_REQUIRED");
+    expect(sleeps).toEqual([25]);
   });
 });
 
