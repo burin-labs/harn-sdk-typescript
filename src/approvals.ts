@@ -1,4 +1,6 @@
 import type { HarnClient } from "./client.js";
+import { sleep as defaultSleep } from "./timing.js";
+import type { Sleep } from "./timing.js";
 import type { Event, JsonObject, Task, TaskStatus } from "./types.js";
 
 export const APPROVAL_STATUSES = ["INPUT_REQUIRED", "AUTH_REQUIRED"] as const satisfies readonly TaskStatus[];
@@ -8,6 +10,8 @@ export interface WaitForTaskOptions {
   signal?: AbortSignal;
   intervalMs?: number;
   timeoutMs?: number;
+  now?: () => number;
+  sleep?: Sleep;
 }
 
 export interface PollForApprovalOptions extends WaitForTaskOptions {
@@ -41,7 +45,9 @@ export async function waitForTask(
   taskId: string,
   options: WaitForTaskOptions = {},
 ): Promise<Task> {
-  const startedAt = Date.now();
+  const now = options.now ?? Date.now;
+  const sleep = options.sleep ?? defaultSleep;
+  const startedAt = now();
   const intervalMs = options.intervalMs ?? 1000;
 
   while (true) {
@@ -49,7 +55,7 @@ export async function waitForTask(
     if (isTerminalTaskStatus(task.status)) {
       return task;
     }
-    assertNotTimedOut(startedAt, options.timeoutMs);
+    assertNotTimedOut(startedAt, options.timeoutMs, now);
     await sleep(intervalMs, options.signal);
   }
 }
@@ -59,7 +65,9 @@ export async function pollForApproval(
   taskId: string,
   options: PollForApprovalOptions = {},
 ): Promise<Task> {
-  const startedAt = Date.now();
+  const now = options.now ?? Date.now;
+  const sleep = options.sleep ?? defaultSleep;
+  const startedAt = now();
   const intervalMs = options.intervalMs ?? 1000;
 
   while (true) {
@@ -73,7 +81,7 @@ export async function pollForApproval(
     if (isTerminalTaskStatus(task.status)) {
       return task;
     }
-    assertNotTimedOut(startedAt, options.timeoutMs);
+    assertNotTimedOut(startedAt, options.timeoutMs, now);
     await sleep(intervalMs, options.signal);
   }
 }
@@ -82,6 +90,10 @@ export async function parseApprovalWebhook(
   body: string | Uint8Array | JsonObject,
   options: ApprovalWebhookOptions = {},
 ): Promise<ApprovalWebhook> {
+  const hasRawBody = typeof body === "string" || body instanceof Uint8Array;
+  if (options.secret && !hasRawBody) {
+    throw new Error("Approval webhook signature verification requires the raw request body.");
+  }
   const raw = typeof body === "string" ? body : body instanceof Uint8Array ? new TextDecoder().decode(body) : JSON.stringify(body);
   if (options.secret) {
     if (!options.signature) {
@@ -140,24 +152,10 @@ function isEventLike(value: unknown): value is Event {
   return typeof value === "object" && value !== null && (value as { object?: unknown }).object === "event";
 }
 
-function assertNotTimedOut(startedAt: number, timeoutMs: number | undefined): void {
-  if (timeoutMs !== undefined && Date.now() - startedAt > timeoutMs) {
+function assertNotTimedOut(startedAt: number, timeoutMs: number | undefined, now: () => number): void {
+  if (timeoutMs !== undefined && now() - startedAt > timeoutMs) {
     throw new Error("Timed out waiting for Harn task state.");
   }
-}
-
-function sleep(ms: number, signal?: AbortSignal): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(resolve, ms);
-    signal?.addEventListener(
-      "abort",
-      () => {
-        clearTimeout(timeout);
-        reject(new DOMException("Operation was aborted.", "AbortError"));
-      },
-      { once: true },
-    );
-  });
 }
 
 function bytesToHex(bytes: Uint8Array): string {

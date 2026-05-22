@@ -4,6 +4,57 @@
  */
 
 export interface paths {
+    "/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check local server health. */
+        get: operations["getHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Harn runtime and local API protocol versions. */
+        get: operations["getVersion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/openapi.json": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve this OpenAPI document as JSON. */
+        get: operations["getOpenApiDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1": {
         parameters: {
             query?: never;
@@ -13,6 +64,74 @@ export interface paths {
         };
         /** Discover supported protocol versions and capabilities. */
         get: operations["getProtocolDiscovery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inspect the local Harn runtime serving this API. */
+        get: operations["getRuntime"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List local API capabilities. */
+        get: operations["listCapabilities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List local control-plane tools exposed by the server. */
+        get: operations["listTools"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tools/{tool_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve a local control-plane tool description. */
+        get: operations["getTool"];
         put?: never;
         post?: never;
         delete?: never;
@@ -110,6 +229,24 @@ export interface paths {
         patch: operations["updateWorkspace"];
         trace?: never;
     };
+    "/v1/workspaces/{workspace_id}/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read or list UTF-8 files under a Workspace root. */
+        get: operations["readWorkspaceFile"];
+        /** Write a UTF-8 file under a Workspace root. */
+        put: operations["writeWorkspaceFile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/sessions": {
         parameters: {
             query?: never;
@@ -174,6 +311,23 @@ export interface paths {
         put?: never;
         /** Fork a Session transcript into a new Session. */
         post: operations["forkSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/truncate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Truncate a Session transcript in place. */
+        post: operations["truncateSession"];
         delete?: never;
         options?: never;
         head?: never;
@@ -314,6 +468,62 @@ export interface paths {
         put?: never;
         /** Request cooperative Task cancellation. */
         post: operations["cancelTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/permission-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List pending and resolved local permission requests. */
+        get: operations["listPermissionRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tasks/{task_id}/permission-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List permission requests attached to a Task. */
+        get: operations["listTaskPermissionRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/permission-requests/{request_id}/respond": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve or deny an ACP permission or HITL request.
+         * @description The local API forwards responses through the same runtime path as ACP
+         *     `session/request_permission` or `harn.hitl.respond`, so decisions are
+         *     captured by the active transcript, EventLog, replay, and receipt flows.
+         */
+        post: operations["respondPermissionRequest"];
         delete?: never;
         options?: never;
         head?: never;
@@ -840,6 +1050,49 @@ export interface components {
                 replay?: boolean;
             };
         };
+        Health: {
+            ok: boolean;
+            status: string;
+            version: string;
+        };
+        RuntimeVersion: {
+            /** @enum {string} */
+            object: "version";
+            version: string;
+            protocol_version: string;
+        };
+        RuntimeMetadata: {
+            /** @enum {string} */
+            object: "runtime";
+            version: string;
+            protocol_version: string;
+            adapter: string;
+            workspace_root?: string;
+            session_count?: number;
+            task_count?: number;
+            capabilities: components["schemas"]["Capability"][];
+        };
+        Capability: {
+            id: string;
+            description: string;
+        };
+        CapabilitySummary: {
+            /** @enum {string} */
+            object: "capability_summary";
+            capabilities: components["schemas"]["Capability"][];
+        };
+        Tool: {
+            id: string;
+            /** @enum {string} */
+            object: "tool";
+            name: string;
+            description: string;
+            input_schema: components["schemas"]["JsonObject"];
+            output_schema: components["schemas"]["JsonObject"];
+        };
+        ToolList: components["schemas"]["PaginatedList"] & {
+            data?: components["schemas"]["Tool"][];
+        };
         Persona: components["schemas"]["ResourceEnvelope"] & {
             /** @enum {string} */
             object: "persona";
@@ -900,6 +1153,36 @@ export interface components {
         WorkspaceList: components["schemas"]["PaginatedList"] & {
             data?: components["schemas"]["Workspace"][];
         };
+        WorkspaceFileEntry: {
+            name: string;
+            path: string;
+            /** @enum {string} */
+            kind: "file" | "directory";
+            size: number;
+        };
+        WorkspaceFileListing: {
+            /** @enum {string} */
+            object: "file_listing";
+            workspace_id: string;
+            path: string;
+            entries: components["schemas"]["WorkspaceFileEntry"][];
+        };
+        WorkspaceFile: {
+            /** @enum {string} */
+            object: "file";
+            workspace_id: string;
+            path: string;
+            /** @enum {string} */
+            encoding: "utf-8";
+            content?: string;
+            bytes?: number;
+        };
+        WriteWorkspaceFileRequest: {
+            /** @description Workspace-relative path; overrides the `path` query parameter when both are supplied. */
+            path?: string;
+            content: string;
+            metadata?: components["schemas"]["Metadata"];
+        };
         CreateWorkspaceRequest: {
             name: string;
             root: string;
@@ -951,6 +1234,21 @@ export interface components {
             branch_id?: string | null;
             metadata?: components["schemas"]["Metadata"];
         };
+        TruncateSessionRequest: {
+            /** @description Number of leading turns to keep in the current Session transcript. */
+            keep_first: number;
+            /** @description Optional client-visible reason for the truncation notification. */
+            reason?: string;
+        };
+        TruncateSessionResponse: {
+            /** @enum {string} */
+            object: "session.truncate_result";
+            session_id: string;
+            kept_turn_count: number;
+            removed_turn_count: number;
+            new_tip_turn_id: string | null;
+            session: components["schemas"]["Session"];
+        };
         Task: components["schemas"]["ResourceEnvelope"] & {
             /** @enum {string} */
             object: "task";
@@ -989,6 +1287,35 @@ export interface components {
         };
         CancelTaskRequest: {
             reason?: string | null;
+        };
+        PermissionRequest: components["schemas"]["ResourceEnvelope"] & {
+            /** @enum {string} */
+            object: "permission_request";
+            session_id?: string | null;
+            task_id?: string | null;
+            /** @enum {string} */
+            status: "pending" | "approved" | "denied";
+            /** @enum {string} */
+            source: "acp" | "hitl";
+            action?: components["schemas"]["JsonValue"];
+            request: components["schemas"]["JsonValue"];
+            response?: components["schemas"]["JsonValue"];
+        };
+        PermissionRequestList: components["schemas"]["PaginatedList"] & {
+            data?: components["schemas"]["PermissionRequest"][];
+        };
+        PermissionResponseRequest: {
+            /** @description Preferred boolean approval switch. */
+            approved?: boolean;
+            /**
+             * @description Compatibility outcome for clients that mirror ACP wording.
+             * @enum {string}
+             */
+            outcome?: "approved" | "approve" | "selected" | "denied" | "deny" | "rejected";
+            answer?: components["schemas"]["JsonValue"];
+            reviewer?: string | null;
+            reason?: string | null;
+            metadata?: components["schemas"]["Metadata"];
         };
         /**
          * @description `exact` reuses only recorded event-log material, `with_overrides`
@@ -1528,10 +1855,14 @@ export interface components {
         WorkspaceIdQuery: string;
         SessionIdQuery: string;
         TaskIdQuery: string;
+        /** @description Workspace-relative path. Omit or use `.` to list the root. */
+        FilePathQuery: string;
         PersonaId: string;
         WorkspaceId: string;
         SessionId: string;
         TaskId: string;
+        ToolId: string;
+        PermissionRequestId: string;
         BranchId: string;
         MessageId: string;
         ArtifactId: string;
@@ -1550,6 +1881,71 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Health status. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Health"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Version metadata. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuntimeVersion"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getOpenApiDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OpenAPI 3.1 document. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
     getProtocolDiscovery: {
         parameters: {
             query?: never;
@@ -1566,6 +1962,107 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Discovery"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getRuntime: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Runtime metadata. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuntimeMetadata"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listCapabilities: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Capability summary. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilitySummary"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listTools: {
+        parameters: {
+            query?: {
+                limit?: components["parameters"]["Limit"];
+                cursor?: components["parameters"]["Cursor"];
+            };
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tool list. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ToolList"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getTool: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path: {
+                tool_id: components["parameters"]["ToolId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tool. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Tool"];
                 };
             };
             default: components["responses"]["Error"];
@@ -1822,6 +2319,70 @@ export interface operations {
             default: components["responses"]["Error"];
         };
     };
+    readWorkspaceFile: {
+        parameters: {
+            query?: {
+                /** @description Workspace-relative path. Omit or use `.` to list the root. */
+                path?: components["parameters"]["FilePathQuery"];
+            };
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path: {
+                workspace_id: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description File content or directory listing. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceFile"] | components["schemas"]["WorkspaceFileListing"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    writeWorkspaceFile: {
+        parameters: {
+            query?: {
+                /** @description Workspace-relative path. Omit or use `.` to list the root. */
+                path?: components["parameters"]["FilePathQuery"];
+            };
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+                /** @description Client-generated key used to safely retry non-idempotent writes. */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                workspace_id: components["parameters"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WriteWorkspaceFileRequest"];
+            };
+        };
+        responses: {
+            /** @description Written file metadata. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceFile"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
     listSessions: {
         parameters: {
             query?: {
@@ -1993,6 +2554,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Session"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    truncateSession: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+                /** @description Client-generated key used to safely retry non-idempotent writes. */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                session_id: components["parameters"]["SessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TruncateSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Truncated Session. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TruncateSessionResponse"];
                 };
             };
             default: components["responses"]["Error"];
@@ -2350,6 +2943,96 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Task"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listPermissionRequests: {
+        parameters: {
+            query?: {
+                session_id?: components["parameters"]["SessionIdQuery"];
+                task_id?: components["parameters"]["TaskIdQuery"];
+                limit?: components["parameters"]["Limit"];
+                cursor?: components["parameters"]["Cursor"];
+            };
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Permission request list. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionRequestList"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listTaskPermissionRequests: {
+        parameters: {
+            query?: {
+                limit?: components["parameters"]["Limit"];
+                cursor?: components["parameters"]["Cursor"];
+            };
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path: {
+                task_id: components["parameters"]["TaskId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Permission request list. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionRequestList"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    respondPermissionRequest: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+                /** @description Client-generated key used to safely retry non-idempotent writes. */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                request_id: components["parameters"]["PermissionRequestId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PermissionResponseRequest"];
+            };
+        };
+        responses: {
+            /** @description Updated PermissionRequest. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionRequest"];
                 };
             };
             default: components["responses"]["Error"];

@@ -37,11 +37,15 @@ for await (const event of client.streamTaskEvents(task.id)) {
 
 - Typed resource aliases generated from `spec/openapi.yaml`.
 - `HarnClient` wrappers for every v1 REST operation.
+- Local Harn runtime discovery helpers for health, version, capabilities, and
+  local control-plane tools.
+- Workspace UTF-8 file read/write helpers.
 - API key, bearer token, browser OIDC, and OAuth2 device-flow auth helpers.
 - SSE parsing for browser and Node `fetch` streams.
 - WebSocket URL/connection helpers for task event streams.
 - Polling and webhook helpers for approval-required task states, including
   Harn Cloud outbound webhook signature verification.
+- Session truncation and local permission-request response helpers.
 - Tool definition helpers for agent-side handler code.
 - Examples in `examples/` for quickstart, streaming, device auth, approvals, tool handling, and webhook receive.
 
@@ -69,6 +73,7 @@ pnpm install
 pnpm generate:types
 pnpm typecheck
 pnpm check:examples
+pnpm check:tests
 pnpm test
 pnpm build
 ```

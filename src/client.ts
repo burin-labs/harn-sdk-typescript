@@ -9,6 +9,7 @@ import type {
   Branch,
   BranchList,
   CancelTaskRequest,
+  CapabilitySummary,
   Connector,
   ConnectorList,
   CreateBranchRequest,
@@ -22,12 +23,16 @@ import type {
   EventList,
   ForkSessionRequest,
   HarnAgentCard,
+  Health,
   Memory,
   MemoryList,
   Message,
   MessageList,
   Outcome,
   OutcomeList,
+  PermissionRequest,
+  PermissionRequestList,
+  PermissionResponseRequest,
   Persona,
   PersonaList,
   Quota,
@@ -37,6 +42,8 @@ import type {
   ReceiptVerification,
   RegisterArtifactRequest,
   ReplayTaskRequest,
+  RuntimeMetadata,
+  RuntimeVersion,
   Session,
   SessionList,
   Skill,
@@ -44,15 +51,23 @@ import type {
   SubmitTaskRequest,
   Task,
   TaskList,
+  Tool,
+  ToolList,
+  TruncateSessionRequest,
+  TruncateSessionResponse,
   UpdatePersonaRequest,
   UpdateSessionRequest,
   UpdateWorkspaceRequest,
   Vault,
   VaultList,
+  WorkspaceFile,
+  WorkspaceFileListing,
   VerifyReceiptRequest,
+  WriteWorkspaceFileRequest,
   Workspace,
   WorkspaceList,
 } from "./types.js";
+import type { operations } from "./generated/openapi.js";
 
 export const HARN_PROTOCOL_VERSION = "agents-protocol-2026-04-25";
 
@@ -81,7 +96,11 @@ export interface StreamOptions extends RequestOptions {
   lastEventId?: string;
 }
 
-type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
+export interface WorkspaceFileOptions extends RequestOptions {
+  path?: string;
+}
+
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 type Query = Record<string, string | number | boolean | null | undefined>;
 
 export class HarnClient {
@@ -102,8 +121,39 @@ export class HarnClient {
     this.auth = options.auth ?? authFromTokenOptions(options);
   }
 
+  getHealth(options?: RequestOptions): Promise<Health> {
+    return this.request("GET", "/health", { ...options, protocol: false });
+  }
+
+  getVersion(options?: RequestOptions): Promise<RuntimeVersion> {
+    return this.request("GET", "/version", { ...options, protocol: false });
+  }
+
+  getOpenApiDocument(options?: RequestOptions): Promise<Record<string, unknown>> {
+    return this.request("GET", "/openapi.json", { ...options, protocol: false });
+  }
+
   getProtocolDiscovery(options?: RequestOptions): Promise<Discovery> {
     return this.request("GET", "/v1", { ...options, protocol: false });
+  }
+
+  getRuntime(options?: RequestOptions): Promise<RuntimeMetadata> {
+    return this.request("GET", "/v1/runtime", options);
+  }
+
+  listCapabilities(options?: RequestOptions): Promise<CapabilitySummary> {
+    return this.request("GET", "/v1/capabilities", options);
+  }
+
+  listTools(options?: ListOptions): Promise<ToolList> {
+    return this.request("GET", "/v1/tools", { ...options, query: pageQuery(options) });
+  }
+
+  getTool(toolId: string, options?: RequestOptions): Promise<Tool> {
+    return this.request("GET", "/v1/tools/{tool_id}", {
+      ...options,
+      path: { tool_id: toolId },
+    });
   }
 
   getAgentCard(options?: RequestOptions): Promise<HarnAgentCard> {
@@ -156,6 +206,30 @@ export class HarnClient {
     });
   }
 
+  readWorkspaceFile(
+    workspaceId: string,
+    options?: WorkspaceFileOptions,
+  ): Promise<WorkspaceFile | WorkspaceFileListing> {
+    return this.request("GET", "/v1/workspaces/{workspace_id}/files", {
+      ...options,
+      path: { workspace_id: workspaceId },
+      query: { path: options?.path },
+    });
+  }
+
+  writeWorkspaceFile(
+    workspaceId: string,
+    body: WriteWorkspaceFileRequest,
+    options?: WorkspaceFileOptions,
+  ): Promise<WorkspaceFile> {
+    return this.request("PUT", "/v1/workspaces/{workspace_id}/files", {
+      ...options,
+      path: { workspace_id: workspaceId },
+      query: { path: options?.path },
+      body,
+    });
+  }
+
   listSessions(options?: ListOptions & { workspaceId?: string }): Promise<SessionList> {
     return this.request("GET", "/v1/sessions", {
       ...options,
@@ -191,6 +265,18 @@ export class HarnClient {
 
   forkSession(sessionId: string, body: ForkSessionRequest = {}, options?: RequestOptions): Promise<Session> {
     return this.request("POST", "/v1/sessions/{session_id}/fork", {
+      ...options,
+      path: { session_id: sessionId },
+      body,
+    });
+  }
+
+  truncateSession(
+    sessionId: string,
+    body: TruncateSessionRequest,
+    options?: RequestOptions,
+  ): Promise<TruncateSessionResponse> {
+    return this.request("POST", "/v1/sessions/{session_id}/truncate", {
       ...options,
       path: { session_id: sessionId },
       body,
@@ -282,6 +368,35 @@ export class HarnClient {
     return this.request("POST", "/v1/tasks/{task_id}/cancel", {
       ...options,
       path: { task_id: taskId },
+      body,
+    });
+  }
+
+  listPermissionRequests(
+    options?: ListOptions & { sessionId?: string; taskId?: string },
+  ): Promise<PermissionRequestList> {
+    return this.request("GET", "/v1/permission-requests", {
+      ...options,
+      query: listQuery(options, { session_id: options?.sessionId, task_id: options?.taskId }),
+    });
+  }
+
+  listTaskPermissionRequests(taskId: string, options?: ListOptions): Promise<PermissionRequestList> {
+    return this.request("GET", "/v1/tasks/{task_id}/permission-requests", {
+      ...options,
+      path: { task_id: taskId },
+      query: pageQuery(options),
+    });
+  }
+
+  respondPermissionRequest(
+    requestId: string,
+    body: PermissionResponseRequest,
+    options?: RequestOptions,
+  ): Promise<PermissionRequest> {
+    return this.request("POST", "/v1/permission-requests/{request_id}/respond", {
+      ...options,
+      path: { request_id: requestId },
       body,
     });
   }
@@ -578,6 +693,10 @@ export class HarnClient {
     return url;
   }
 }
+
+// Keep hand-written client wrappers aligned with the vendored OpenAPI operation surface.
+type AssertNoMissingOperations<T extends never> = T;
+type HarnClientMissingOpenApiOperations = AssertNoMissingOperations<Exclude<keyof operations, keyof HarnClient>>;
 
 interface InternalRequestOptions extends RequestOptions {
   accept?: string;

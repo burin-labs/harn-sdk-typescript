@@ -26,6 +26,8 @@ security:
   - bearerAuth: []
 tags:
   - name: Discovery
+  - name: Runtime
+  - name: Tools
   - name: Personas
   - name: Workspaces
   - name: Sessions
@@ -41,8 +43,58 @@ tags:
   - name: Skills
   - name: Outcomes
   - name: Quotas
+  - name: Permissions
 
 paths:
+  /health:
+    get:
+      tags: [Runtime]
+      operationId: getHealth
+      summary: Check local server health.
+      security: []
+      responses:
+        "200":
+          description: Health status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /version:
+    get:
+      tags: [Runtime]
+      operationId: getVersion
+      summary: Read Harn runtime and local API protocol versions.
+      security: []
+      responses:
+        "200":
+          description: Version metadata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeVersion"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /openapi.json:
+    get:
+      tags: [Discovery]
+      operationId: getOpenApiDocument
+      summary: Retrieve this OpenAPI document as JSON.
+      security: []
+      responses:
+        "200":
+          description: OpenAPI 3.1 document.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        default:
+          $ref: "#/components/responses/Error"
+
   /v1:
     get:
       tags: [Discovery]
@@ -56,6 +108,77 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Discovery"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/runtime:
+    get:
+      tags: [Runtime]
+      operationId: getRuntime
+      summary: Inspect the local Harn runtime serving this API.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+      responses:
+        "200":
+          description: Runtime metadata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeMetadata"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/capabilities:
+    get:
+      tags: [Runtime]
+      operationId: listCapabilities
+      summary: List local API capabilities.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+      responses:
+        "200":
+          description: Capability summary.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CapabilitySummary"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/tools:
+    get:
+      tags: [Tools]
+      operationId: listTools
+      summary: List local control-plane tools exposed by the server.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Tool list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ToolList"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/tools/{tool_id}:
+    get:
+      tags: [Tools]
+      operationId: getTool
+      summary: Retrieve a local control-plane tool description.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/ToolId"
+      responses:
+        "200":
+          description: Tool.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tool"
         default:
           $ref: "#/components/responses/Error"
 
@@ -239,6 +362,51 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /v1/workspaces/{workspace_id}/files:
+    get:
+      tags: [Workspaces]
+      operationId: readWorkspaceFile
+      summary: Read or list UTF-8 files under a Workspace root.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/WorkspaceId"
+        - $ref: "#/components/parameters/FilePathQuery"
+      responses:
+        "200":
+          description: File content or directory listing.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/WorkspaceFile"
+                  - $ref: "#/components/schemas/WorkspaceFileListing"
+        default:
+          $ref: "#/components/responses/Error"
+    put:
+      tags: [Workspaces]
+      operationId: writeWorkspaceFile
+      summary: Write a UTF-8 file under a Workspace root.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/WorkspaceId"
+        - $ref: "#/components/parameters/FilePathQuery"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WriteWorkspaceFileRequest"
+      responses:
+        "200":
+          description: Written file metadata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceFile"
+        default:
+          $ref: "#/components/responses/Error"
+
   /v1/sessions:
     get:
       tags: [Sessions]
@@ -363,6 +531,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Session"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/sessions/{session_id}/truncate:
+    post:
+      tags: [Sessions]
+      operationId: truncateSession
+      summary: Truncate a Session transcript in place.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TruncateSessionRequest"
+      responses:
+        "200":
+          description: Truncated Session.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TruncateSessionResponse"
         default:
           $ref: "#/components/responses/Error"
 
@@ -617,6 +810,76 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/permission-requests:
+    get:
+      tags: [Permissions]
+      operationId: listPermissionRequests
+      summary: List pending and resolved local permission requests.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/SessionIdQuery"
+        - $ref: "#/components/parameters/TaskIdQuery"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Permission request list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermissionRequestList"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/tasks/{task_id}/permission-requests:
+    get:
+      tags: [Permissions]
+      operationId: listTaskPermissionRequests
+      summary: List permission requests attached to a Task.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/TaskId"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Permission request list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermissionRequestList"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/permission-requests/{request_id}/respond:
+    post:
+      tags: [Permissions]
+      operationId: respondPermissionRequest
+      summary: Approve or deny an ACP permission or HITL request.
+      description: |
+        The local API forwards responses through the same runtime path as ACP
+        `session/request_permission` or `harn.hitl.respond`, so decisions are
+        captured by the active transcript, EventLog, replay, and receipt flows.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/PermissionRequestId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PermissionResponseRequest"
+      responses:
+        "200":
+          description: Updated PermissionRequest.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermissionRequest"
         default:
           $ref: "#/components/responses/Error"
 
@@ -1328,6 +1591,13 @@ components:
       required: false
       schema:
         type: string
+    FilePathQuery:
+      name: path
+      in: query
+      required: false
+      description: Workspace-relative path. Omit or use `.` to list the root.
+      schema:
+        type: string
     PersonaId:
       name: persona_id
       in: path
@@ -1348,6 +1618,18 @@ components:
         type: string
     TaskId:
       name: task_id
+      in: path
+      required: true
+      schema:
+        type: string
+    ToolId:
+      name: tool_id
+      in: path
+      required: true
+      schema:
+        type: string
+    PermissionRequestId:
+      name: request_id
       in: path
       required: true
       schema:
@@ -1502,6 +1784,98 @@ components:
             replay:
               type: boolean
 
+    Health:
+      type: object
+      required: [ok, status, version]
+      properties:
+        ok:
+          type: boolean
+        status:
+          type: string
+        version:
+          type: string
+    RuntimeVersion:
+      type: object
+      required: [object, version, protocol_version]
+      properties:
+        object:
+          type: string
+          enum: [version]
+        version:
+          type: string
+        protocol_version:
+          type: string
+    RuntimeMetadata:
+      type: object
+      required: [object, version, protocol_version, adapter, capabilities]
+      properties:
+        object:
+          type: string
+          enum: [runtime]
+        version:
+          type: string
+        protocol_version:
+          type: string
+        adapter:
+          type: string
+        workspace_root:
+          type: string
+        session_count:
+          type: integer
+          minimum: 0
+        task_count:
+          type: integer
+          minimum: 0
+        capabilities:
+          type: array
+          items:
+            $ref: "#/components/schemas/Capability"
+    Capability:
+      type: object
+      required: [id, description]
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+    CapabilitySummary:
+      type: object
+      required: [object, capabilities]
+      properties:
+        object:
+          type: string
+          enum: [capability_summary]
+        capabilities:
+          type: array
+          items:
+            $ref: "#/components/schemas/Capability"
+    Tool:
+      type: object
+      required: [id, object, name, description, input_schema, output_schema]
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          enum: [tool]
+        name:
+          type: string
+        description:
+          type: string
+        input_schema:
+          $ref: "#/components/schemas/JsonObject"
+        output_schema:
+          $ref: "#/components/schemas/JsonObject"
+    ToolList:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedList"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/Tool"
+
     Persona:
       allOf:
         - $ref: "#/components/schemas/ResourceEnvelope"
@@ -1644,6 +2018,65 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/Workspace"
+    WorkspaceFileEntry:
+      type: object
+      required: [name, path, kind, size]
+      properties:
+        name:
+          type: string
+        path:
+          type: string
+        kind:
+          type: string
+          enum: [file, directory]
+        size:
+          type: integer
+          minimum: 0
+    WorkspaceFileListing:
+      type: object
+      required: [object, workspace_id, path, entries]
+      properties:
+        object:
+          type: string
+          enum: [file_listing]
+        workspace_id:
+          type: string
+        path:
+          type: string
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkspaceFileEntry"
+    WorkspaceFile:
+      type: object
+      required: [object, workspace_id, path, encoding]
+      properties:
+        object:
+          type: string
+          enum: [file]
+        workspace_id:
+          type: string
+        path:
+          type: string
+        encoding:
+          type: string
+          enum: [utf-8]
+        content:
+          type: string
+        bytes:
+          type: integer
+          minimum: 0
+    WriteWorkspaceFileRequest:
+      type: object
+      required: [content]
+      properties:
+        path:
+          type: string
+          description: Workspace-relative path; overrides the `path` query parameter when both are supplied.
+        content:
+          type: string
+        metadata:
+          $ref: "#/components/schemas/Metadata"
     CreateWorkspaceRequest:
       type: object
       required: [name, root]
@@ -1764,6 +2197,42 @@ components:
           type: [string, "null"]
         metadata:
           $ref: "#/components/schemas/Metadata"
+    TruncateSessionRequest:
+      type: object
+      required: [keep_first]
+      properties:
+        keep_first:
+          type: integer
+          minimum: 0
+          description: Number of leading turns to keep in the current Session transcript.
+        reason:
+          type: string
+          description: Optional client-visible reason for the truncation notification.
+    TruncateSessionResponse:
+      type: object
+      required:
+        - object
+        - session_id
+        - kept_turn_count
+        - removed_turn_count
+        - new_tip_turn_id
+        - session
+      properties:
+        object:
+          type: string
+          enum: [session.truncate_result]
+        session_id:
+          type: string
+        kept_turn_count:
+          type: integer
+          minimum: 0
+        removed_turn_count:
+          type: integer
+          minimum: 0
+        new_tip_turn_id:
+          type: [string, "null"]
+        session:
+          $ref: "#/components/schemas/Session"
 
     Task:
       allOf:
@@ -1855,6 +2324,58 @@ components:
       properties:
         reason:
           type: [string, "null"]
+    PermissionRequest:
+      allOf:
+        - $ref: "#/components/schemas/ResourceEnvelope"
+        - type: object
+          required: [object, status, source, request]
+          properties:
+            object:
+              type: string
+              enum: [permission_request]
+            session_id:
+              type: [string, "null"]
+            task_id:
+              type: [string, "null"]
+            status:
+              type: string
+              enum: [pending, approved, denied]
+            source:
+              type: string
+              enum: [acp, hitl]
+            action:
+              $ref: "#/components/schemas/JsonValue"
+            request:
+              $ref: "#/components/schemas/JsonValue"
+            response:
+              $ref: "#/components/schemas/JsonValue"
+    PermissionRequestList:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedList"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/PermissionRequest"
+    PermissionResponseRequest:
+      type: object
+      properties:
+        approved:
+          type: boolean
+          description: Preferred boolean approval switch.
+        outcome:
+          type: string
+          enum: [approved, approve, selected, denied, deny, rejected]
+          description: Compatibility outcome for clients that mirror ACP wording.
+        answer:
+          $ref: "#/components/schemas/JsonValue"
+        reviewer:
+          type: [string, "null"]
+        reason:
+          type: [string, "null"]
+        metadata:
+          $ref: "#/components/schemas/Metadata"
     ReplayMode:
       type: string
       enum: [exact, with_overrides, from_checkpoint]

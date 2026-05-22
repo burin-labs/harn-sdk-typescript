@@ -1,3 +1,6 @@
+import { sleep } from "./timing.js";
+import type { Sleep } from "./timing.js";
+
 export interface HarnAuthContext {
   url: URL;
   method: string;
@@ -154,7 +157,7 @@ export interface OAuth2DevicePollOptions {
   signal?: AbortSignal;
   intervalMs?: number;
   now?: () => number;
-  sleep?: (ms: number, signal?: AbortSignal) => Promise<void>;
+  sleep?: Sleep;
 }
 
 async function fetchJson<T>(fetchImpl: typeof fetch, url: URL, init: RequestInit): Promise<T> {
@@ -168,20 +171,6 @@ async function fetchJson<T>(fetchImpl: typeof fetch, url: URL, init: RequestInit
 
 async function safeJson<T>(response: Response): Promise<T> {
   return (await response.json().catch(() => ({}))) as T;
-}
-
-function sleep(ms: number, signal?: AbortSignal): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(resolve, ms);
-    signal?.addEventListener(
-      "abort",
-      () => {
-        clearTimeout(timeout);
-        reject(new DOMException("Operation was aborted.", "AbortError"));
-      },
-      { once: true },
-    );
-  });
 }
 
 function ensureTrailingSlash(value: string): string {
