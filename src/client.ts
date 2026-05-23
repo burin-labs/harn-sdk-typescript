@@ -73,6 +73,11 @@ export const HARN_PROTOCOL_VERSION = "agents-protocol-2026-04-25";
 
 export interface HarnClientOptions {
   baseUrl?: string | URL;
+  /**
+   * @deprecated Alias of {@link HarnClientOptions.accessToken}; both fields
+   *   are forwarded to `Authorization: Bearer ...`. Use `accessToken` in new
+   *   code so the intent reads clearly.
+   */
   apiKey?: string;
   accessToken?: string | (() => string | Promise<string>);
   auth?: AuthProvider;
@@ -103,15 +108,44 @@ export interface WorkspaceFileOptions extends RequestOptions {
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 type Query = Record<string, string | number | boolean | null | undefined>;
 
+const DEFAULT_BASE_URL = "https://api.harnlang.com";
+const LOCAL_HTTP_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
+
+/**
+ * Validate a configured base URL and return its normalized {@link URL}.
+ *
+ * F9: rejects schemes other than `https:` so an accidental
+ * `http://attacker/` cannot ship a bearer token in cleartext. `http:` is
+ * allowed only for `localhost` / `127.0.0.1` (local development).
+ */
+function validateBaseUrl(input: string | URL): URL {
+  const url = input instanceof URL ? new URL(input.toString()) : new URL(input);
+  const scheme = url.protocol.toLowerCase();
+  const host = url.hostname.toLowerCase();
+  if (scheme === "https:") {
+    return url;
+  }
+  if (scheme === "http:" && LOCAL_HTTP_HOSTS.has(host)) {
+    return url;
+  }
+  throw new Error(
+    `HarnClient baseUrl must use https:// (got ${url.toString()}); ` +
+      `http:// is only allowed for localhost / 127.0.0.1`,
+  );
+}
+
 export class HarnClient {
   readonly baseUrl: URL;
   readonly protocolVersion: string;
   private readonly fetchImpl: typeof fetch;
   private readonly defaultHeaders: HeadersInit | undefined;
   private readonly auth: AuthProvider | undefined;
+  private readonly canonicalHost: string;
 
   constructor(options: HarnClientOptions = {}) {
-    this.baseUrl = new URL(options.baseUrl ?? "https://api.harnlang.com");
+    const baseUrlInput = options.baseUrl ?? DEFAULT_BASE_URL;
+    this.baseUrl = validateBaseUrl(baseUrlInput);
+    this.canonicalHost = this.baseUrl.hostname.toLowerCase();
     this.protocolVersion = options.protocolVersion ?? HARN_PROTOCOL_VERSION;
     this.fetchImpl = options.fetch ?? globalThis.fetch?.bind(globalThis);
     if (!this.fetchImpl) {
@@ -119,6 +153,20 @@ export class HarnClient {
     }
     this.defaultHeaders = options.headers;
     this.auth = options.auth ?? authFromTokenOptions(options);
+
+    // F1: one-time warning when the caller overrode the default baseUrl AND
+    // configured a token/auth provider. Tokens issued for api.harnlang.com
+    // almost certainly should not travel to a custom host.
+    const baseUrlOverridden =
+      options.baseUrl !== undefined && this.baseUrl.toString().replace(/\/$/, "") !==
+        new URL(DEFAULT_BASE_URL).toString().replace(/\/$/, "");
+    if (baseUrlOverridden && this.auth !== undefined && typeof globalThis.console !== "undefined") {
+      globalThis.console.warn(
+        `[harn] baseUrl overridden to ${this.baseUrl.toString()} while a ` +
+          `token/auth provider is configured. The bearer is host-pinned: ` +
+          `cross-host requests will be unauthenticated.`,
+      );
+    }
   }
 
   getHealth(options?: RequestOptions): Promise<Health> {
@@ -662,7 +710,11 @@ export class HarnClient {
     if (options.body !== undefined && !headers.has("Content-Type")) {
       headers.set("Content-Type", "application/json");
     }
-    if (this.auth) {
+    // F1 (cross-host bearer leak guard): only invoke the auth provider when
+    // the outgoing request will reach the host we pinned at construction.
+    // This blocks bearer headers from following an absolute URL or a maliciously
+    // joined path to a different host.
+    if (this.auth && url.hostname.toLowerCase() === this.canonicalHost) {
       appendHeaders(headers, await this.auth({ url, method }));
     }
 
