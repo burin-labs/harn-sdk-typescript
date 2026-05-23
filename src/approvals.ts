@@ -105,6 +105,15 @@ export async function parseApprovalWebhook(
   if (options.toleranceSeconds !== undefined && !signedTimestamp) {
     throw new Error("Approval webhook timestamp is required when a tolerance is configured.");
   }
+  // F12 (2026-05-23 security sweep): symmetric guard. Without this, callers
+  // who passed a `timestamp` (or signed it) but forgot `toleranceSeconds`
+  // would silently skip the age check entirely — leaving the webhook open to
+  // arbitrarily old replays.
+  if (signedTimestamp && options.toleranceSeconds === undefined) {
+    throw new Error(
+      "Approval webhook toleranceSeconds is required when a timestamp is provided.",
+    );
+  }
   if (signedTimestamp && options.toleranceSeconds !== undefined) {
     const now = options.now ?? Date.now;
     const ageSeconds = Math.abs(now() / 1000 - Number(signedTimestamp));

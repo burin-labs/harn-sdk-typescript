@@ -56,6 +56,24 @@ for await (const event of client.streamTaskEvents(task.id)) {
 - Examples in `examples/` for quickstart, streaming, device auth, approvals,
   tool handling, and webhook receive.
 
+## Authentication safety defaults
+
+As of the 2026-05-23 security sweep:
+
+- The bearer token is **host-pinned** to `baseUrl`. If a request URL ends up at
+  a different host (for example because you passed an absolute URL or the
+  custom `auth` provider received a redirected URL), the `Authorization` header
+  is not attached. This prevents accidental cross-host bearer leaks.
+- `baseUrl` must use `https://`. `http://` is allowed only for `localhost` /
+  `127.0.0.1` for local development; any other plain-`http://` URL throws at
+  construction.
+- A `console.warn` fires when you override `baseUrl` while a token or `auth`
+  provider is configured — bearer tokens issued for one host should not be
+  reused against another by accident.
+- `apiKey` and `apiKeyAuth` are deprecated aliases of `accessToken` /
+  `bearerTokenAuth` (the Harn API has a single bearer scheme). They will
+  continue to work; new code should prefer the explicit names.
+
 ## Harn Cloud webhooks
 
 `parseApprovalWebhook` verifies Harn Cloud outbound webhook deliveries when you

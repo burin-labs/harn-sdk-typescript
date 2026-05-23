@@ -8,6 +8,13 @@ export interface HarnAuthContext {
 
 export type AuthProvider = (context: HarnAuthContext) => HeadersInit | Promise<HeadersInit>;
 
+/**
+ * @deprecated Use {@link bearerTokenAuth} instead. The Harn API uses a single
+ *   `Authorization: Bearer ...` scheme; this helper is a thin alias that
+ *   exists only for source-compatibility with earlier SDK previews. New code
+ *   should call `bearerTokenAuth` (or pass `accessToken` on
+ *   `HarnClientOptions`) so the intent reads clearly at the call site.
+ */
 export function apiKeyAuth(apiKey: string): AuthProvider {
   return bearerTokenAuth(apiKey);
 }
