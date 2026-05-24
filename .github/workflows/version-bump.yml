@@ -68,20 +68,50 @@ jobs:
       - run: pnpm build
       - name: Create release branch
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           VERSION="${{ steps.bump.outputs.version }}"
           BRANCH="release/v${VERSION}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
-          git add package.json
-          git commit -m "chore: release v${VERSION}"
-          git push --set-upstream origin "$BRANCH"
+          # Use createCommitOnBranch so the release commit lands signed by
+          # GitHub (the org-level required_signatures rule on `main` would
+          # otherwise block auto-merge on the resulting PR).
+          BASE_SHA="$(git rev-parse HEAD)"
+
+          if gh api "repos/${REPO}/git/refs/heads/${BRANCH}" >/dev/null 2>&1; then
+            gh api -X PATCH "repos/${REPO}/git/refs/heads/${BRANCH}" \
+              -f sha="${BASE_SHA}" -F force=true >/dev/null
+          else
+            gh api -X POST "repos/${REPO}/git/refs" \
+              -f ref="refs/heads/${BRANCH}" -f sha="${BASE_SHA}" >/dev/null
+          fi
+
+          PACKAGE_B64="$(base64 -w0 < package.json)"
+          REQ_FILE="$(mktemp)"
+          jq -n \
+            --arg repo "${REPO}" \
+            --arg branch "${BRANCH}" \
+            --arg headline "chore: release v${VERSION}" \
+            --arg oid "${BASE_SHA}" \
+            --arg pkg "${PACKAGE_B64}" \
+            '{
+              query: "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid url } } }",
+              variables: {
+                input: {
+                  branch: {repositoryNameWithOwner: $repo, branchName: $branch},
+                  message: {headline: $headline},
+                  fileChanges: {additions: [{path: "package.json", contents: $pkg}]},
+                  expectedHeadOid: $oid
+                }
+              }
+            }' > "${REQ_FILE}"
+
+          gh api graphql --input "${REQ_FILE}" >/dev/null
+
           gh pr create \
             --base main \
             --head "$BRANCH" \
             --title "Release v${VERSION}" \
             --body "Bumps @burin-labs/harn to v${VERSION}. After this PR merges, run the Create Release Tag workflow for v${VERSION}."
-        env:
-          GH_TOKEN: ${{ github.token }}
