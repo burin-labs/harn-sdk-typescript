@@ -35,6 +35,11 @@ jobs:
       - run: pnpm check:tests
       - run: pnpm test
       - run: pnpm build
+      - uses: actions/upload-artifact@v6
+        with:
+          name: dist-node-${{ matrix.node }}
+          path: dist/
+          if-no-files-found: error
 
   ci-status:
     name: CI status
