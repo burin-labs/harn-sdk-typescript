@@ -35,7 +35,7 @@ jobs:
     name: Open Version Bump PR
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 0
@@ -50,14 +50,18 @@ jobs:
       - name: Bump package version
         id: bump
         shell: bash
+        env:
+          BUMP: ${{ inputs.bump }}
+          EXPLICIT_VERSION: ${{ inputs.explicit_version }}
+          PREID: ${{ inputs.preid }}
         run: |
           set -euo pipefail
-          if [ -n "${{ inputs.explicit_version }}" ]; then
-            npm version "${{ inputs.explicit_version }}" --no-git-tag-version
-          elif [[ "${{ inputs.bump }}" == pre* || "${{ inputs.bump }}" == "prerelease" ]]; then
-            npm version "${{ inputs.bump }}" --preid "${{ inputs.preid }}" --no-git-tag-version
+          if [ -n "${EXPLICIT_VERSION}" ]; then
+            npm version "${EXPLICIT_VERSION}" --no-git-tag-version
+          elif [[ "${BUMP}" == pre* || "${BUMP}" == "prerelease" ]]; then
+            npm version "${BUMP}" --preid "${PREID}" --no-git-tag-version
           else
-            npm version "${{ inputs.bump }}" --no-git-tag-version
+            npm version "${BUMP}" --no-git-tag-version
           fi
           VERSION="$(node -p "require('./package.json').version")"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
