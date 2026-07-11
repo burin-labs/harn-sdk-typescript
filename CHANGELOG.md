@@ -25,3 +25,12 @@ All notable changes to `@burin-labs/harn` are tracked here. The format follows
 - **F11 (MEDIUM) — `apiKey` / `apiKeyAuth`** are now marked `@deprecated`
   aliases of `accessToken` / `bearerTokenAuth`. Both code paths continue to
   work; new code should use the explicit bearer names.
+
+### Changed
+
+- **Dependencies.** Upgraded dev dependencies to latest: `@types/node`
+  (25 → 26, major), `tsx` (4.22 → 4.23), `vitest` (4.1.9 → 4.1.10). Bumped
+  `actions/checkout` (v6 → v7) across all CI workflows. `typescript` is held at
+  latest 5.x (5.9.3); TypeScript 7 is deferred because `openapi-typescript`
+  (this repo's OpenAPI codegen) is not yet compatible with the TS 7 native
+  compiler API.
