@@ -1,4 +1,4 @@
-# Agent notes
+# AGENTS.md - Harn TypeScript SDK
 
 This repo is the TypeScript SDK for the Harn Agents API. Keep changes small,
 typed, and easy to audit.
@@ -28,6 +28,12 @@ pnpm check:examples
 pnpm check:tests
 pnpm test
 pnpm build
+```
+
+For release or package-metadata changes, also run:
+
+```sh
+pnpm pack:dry-run
 ```
 
 ## Docs
