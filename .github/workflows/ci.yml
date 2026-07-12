@@ -39,6 +39,7 @@ jobs:
       - run: pnpm check:tests
       - run: pnpm test
       - run: pnpm build
+      - run: pnpm pack:dry-run
       - uses: actions/upload-artifact@v7
         with:
           name: dist-node-${{ matrix.node }}

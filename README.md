@@ -8,13 +8,16 @@ contract in `spec/openapi.yaml` and generates TypeScript schema/path types with
 
 ## Install
 
-After the first alpha is published:
+`@burin-labs/harn` is not published on npm yet. Use a local checkout for SDK
+development:
 
 ```sh
-pnpm add @burin-labs/harn@alpha
+git clone https://github.com/burin-labs/harn-sdk-typescript.git
+cd harn-sdk-typescript
+pnpm install --frozen-lockfile
 ```
 
-For SDK development, clone this repo and run `pnpm install`.
+The [publishing guide](docs/PUBLISHING.md) covers the first public npm release.
 
 ## Quickstart
 
@@ -94,13 +97,14 @@ received from your HTTP framework, before JSON parsing.
 ## Development
 
 ```sh
-pnpm install
+pnpm install --frozen-lockfile
 pnpm generate:types
 pnpm typecheck
 pnpm check:examples
 pnpm check:tests
 pnpm test
 pnpm build
+pnpm pack:dry-run
 ```
 
 The generated OpenAPI types live in `src/generated/openapi.ts`. Regenerate them
