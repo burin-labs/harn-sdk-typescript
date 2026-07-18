@@ -29,7 +29,7 @@ jobs:
       - uses: pnpm/action-setup@v6
         with:
           version: 10.31.0
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
