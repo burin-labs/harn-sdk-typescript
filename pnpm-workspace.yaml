@@ -1,0 +1,18 @@
+# pnpm settings. pnpm no longer reads the "pnpm" field in package.json, so
+# overrides and build-script approvals live here. https://pnpm.io/settings
+
+overrides:
+  # Security floor. vitest already resolves vite above this, but the override
+  # keeps a transitive downgrade from reintroducing a vulnerable vite.
+  vite: ">=8.0.16"
+
+peerDependencyRules:
+  allowedVersions:
+    # openapi-typescript@7.13.0 (the latest release) declares a conservative
+    # `typescript: ^5.x` peer. Verified empirically against TypeScript 6.0.3:
+    # `pnpm generate:types` succeeds and regenerates src/generated/openapi.ts
+    # byte-identically. Revisit when openapi-typescript widens the bound.
+    openapi-typescript>typescript: "6"
+
+allowBuilds:
+  esbuild: true
