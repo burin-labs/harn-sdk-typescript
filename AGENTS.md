@@ -6,7 +6,11 @@ typed, and easy to audit.
 ## Setup
 
 - Use `pnpm`.
-- CI uses pnpm `10.31.0` and Node `20`/`22`.
+- CI uses pnpm `10.31.0` and Node `22`/`24`. Node `20` is end-of-life; the
+  supported floor is `engines.node` in `package.json`.
+- pnpm settings (`overrides`, `onlyBuiltDependencies`) live in
+  `pnpm-workspace.yaml`. pnpm no longer reads the `pnpm` field in
+  `package.json`.
 - The npm publish job uses Node `24` so npm can attach provenance.
 - Use `pnpm install --frozen-lockfile` for CI parity. Use `pnpm install` only
   when a lockfile change is part of the task.
