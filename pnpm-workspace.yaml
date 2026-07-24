@@ -2,6 +2,7 @@
 # overrides and build-script approvals live here. https://pnpm.io/settings
 
 overrides:
+  js-yaml: "4.3.0"
   # Security floor. vitest already resolves vite above this, but the override
   # keeps a transitive downgrade from reintroducing a vulnerable vite.
   vite: ">=8.0.16"
