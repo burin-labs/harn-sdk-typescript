@@ -2,7 +2,17 @@
 # overrides and build-script approvals live here. https://pnpm.io/settings
 
 overrides:
-  js-yaml: "4.3.0"
+  # Security floor. js-yaml reaches us only through
+  # openapi-typescript > @redocly/openapi-core, which depends on an exact
+  # js-yaml version, so a patched release needs an override to win. Keep this
+  # a range, never an exact pin: a pin caps resolution and makes Dependabot
+  # report `security_update_not_possible` on the *next* advisory, which is
+  # how a `4.3.0` pin here blocked the GHSA-5p4m-2wfm-xmqj fix. The `<5` bound
+  # keeps the override inside the major its consumer expects; without it pnpm
+  # resolves js-yaml 5.x under a caller written against 4.x. Drop this entry
+  # once @redocly/openapi-core >= 1.34.19 is in the lockfile, since that
+  # release depends on js-yaml 4.3.1 on its own.
+  js-yaml: ">=4.3.1 <5"
   # Security floor. vitest already resolves vite above this, but the override
   # keeps a transitive downgrade from reintroducing a vulnerable vite.
   vite: ">=8.0.16"
