@@ -106,6 +106,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/provider-catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the normalized Harn provider/model catalog.
+         * @description Returns the same provider catalog v6 artifact shape as Harn's checked-in
+         *     catalog, using the runtime's effective provider and capability overlays.
+         */
+        get: operations["getProviderCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tools": {
         parameters: {
             query?: never;
@@ -294,6 +315,91 @@ export interface paths {
         put?: never;
         /** Close an active Session. */
         post: operations["closeSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/live-clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List live clients attached to a Session. */
+        get: operations["listSessionLiveClients"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/attach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Attach a live client to a Session. */
+        post: operations["attachSessionClient"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/takeover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Attach a client as the active Session controller. */
+        post: operations["takeoverSessionClient"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/detach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Detach a live client from a Session. */
+        post: operations["detachSessionClient"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/heartbeat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Refresh an attached live client's liveness marker. */
+        post: operations["heartbeatSessionClient"];
         delete?: never;
         options?: never;
         head?: never;
@@ -530,6 +636,137 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/permissions/policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the currently-installed permission policy.
+         * @description Returns the declared permission policy (read/write/exec/net globs,
+         *     llm provider allowlist with optional cost ceiling, redaction
+         *     patterns, escalation chain) together with its content-hashed
+         *     version. Every audit entry pins the version it was decided
+         *     against so historical evaluations stay reproducible.
+         */
+        get: operations["getPermissionPolicy"];
+        /**
+         * Replace the active permission policy.
+         * @description Validates the supplied policy (rejects empty patterns and invalid
+         *     globs at parse time) and installs it. The previous version is
+         *     replaced atomically; in-flight requests evaluated against the
+         *     old version remain unaffected.
+         */
+        put: operations["installPermissionPolicy"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/permissions/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List active "remember" rules.
+         * @description Returns every non-revoked, non-expired rule the store knows about,
+         *     ordered narrowest-scope-first.
+         */
+        get: operations["listPermissionRules"];
+        put?: never;
+        /**
+         * Install a new "remember" rule.
+         * @description Materializes a persistent rule that pins one action+target
+         *     glob to a verdict at the chosen scope. Use the
+         *     `respond_permission_request` endpoint with `remember: true`
+         *     for the in-flight equivalent.
+         */
+        post: operations["createPermissionRule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/permissions/rules/{rule_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Soft-revoke a "remember" rule.
+         * @description Marks the rule as revoked. Subsequent evaluations skip it; the
+         *     original row is preserved for audit. Use the audit API to find
+         *     the original `created_at`/`created_by` after revocation.
+         */
+        delete: operations["revokePermissionRule"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/permissions/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Query the permission audit log.
+         * @description Returns audit entries (every grant, deny, escalation) in
+         *     reverse-chronological order. Filter by session, workspace,
+         *     tenant, actor, or outcome. The in-memory store currently
+         *     retains the last `audit_capacity` entries; durable backends
+         *     (A.5) will eventually replace this with the session-store
+         *     event feed.
+         */
+        get: operations["getPermissionHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/permissions/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Evaluate a permission request against policy + rules.
+         * @description Stateless evaluation entry-point. The store consults remember
+         *     rules (narrowest-scope-first), then the declared policy, then
+         *     the auto-deny floor. When nothing matches, returns
+         *     `outcome: "suspend"` with the escalation chain — the caller
+         *     is expected to hand the request off to the ACP
+         *     `session/request_permission` channel for human review.
+         */
+        post: operations["checkPermission"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tasks/{task_id}/replay": {
         parameters: {
             query?: never;
@@ -564,7 +801,13 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Send input, interrupt, or tool-confirmation content to a Task. */
+        /**
+         * Steer a running Task with additional user input.
+         * @description Routes text through Harn's canonical active-prompt injection seam. Use
+         *     the Task cancel endpoint for cancellation and the permission-response
+         *     endpoint for tool confirmations; those controls retain their own typed
+         *     audit contracts rather than being encoded as messages.
+         */
         post: operations["appendTaskMessage"];
         delete?: never;
         options?: never;
@@ -1081,6 +1324,34 @@ export interface components {
             object: "capability_summary";
             capabilities: components["schemas"]["Capability"][];
         };
+        ProviderCatalog: {
+            /** @enum {integer} */
+            schema_version: 6;
+            /** @enum {string} */
+            schema: "https://harnlang.com/schemas/provider-catalog.v6.json";
+            generated_by: string;
+            providers: {
+                [key: string]: unknown;
+            }[];
+            models: {
+                [key: string]: unknown;
+            }[];
+            aliases: {
+                [key: string]: unknown;
+            }[];
+            variants: {
+                [key: string]: unknown;
+            }[];
+            families: {
+                [key: string]: unknown;
+            }[];
+            routing_routes?: {
+                [key: string]: unknown;
+            }[];
+            qc_defaults: {
+                [key: string]: string;
+            };
+        };
         Tool: {
             id: string;
             /** @enum {string} */
@@ -1206,19 +1477,40 @@ export interface components {
             state: "ACTIVE" | "IDLE" | "PAUSED" | "CLOSED" | "FAILED";
             transcript: components["schemas"]["JsonObject"] | string;
             persona_id?: string | null;
+            model_policy?: components["schemas"]["SessionModelPolicy"];
             root_session_id?: string | null;
             parent_session_id?: string | null;
             branch_id?: string | null;
             last_event_id?: string | null;
+            live_clients?: components["schemas"]["LiveSessionClient"][];
+            live_controller_id?: string | null;
             summary?: string | null;
             expires_at?: components["schemas"]["Timestamp"] | null;
         };
         SessionList: components["schemas"]["PaginatedList"] & {
             data?: components["schemas"]["Session"][];
         };
+        /**
+         * @description Concrete default model route for a session. Explicit per-call route and
+         *     reasoning options take precedence, followed by this session policy,
+         *     persona/script policy, and ambient runtime defaults.
+         */
+        SessionModelPolicy: {
+            /** @description Registered concrete provider identifier. */
+            provider: string;
+            /** @description Provider-native model identifier. */
+            model: string;
+            /**
+             * @description Optional provider-portable reasoning effort.
+             * @enum {string}
+             */
+            reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+        };
         CreateSessionRequest: {
             workspace_id: string;
             persona_id?: string | null;
+            /** @description Optional session model default. Null is equivalent to omission. */
+            model_policy?: components["schemas"]["SessionModelPolicy"] | null;
             vault_ids?: string[];
             memory_ids?: string[];
             skill_ids?: string[];
@@ -1227,6 +1519,8 @@ export interface components {
         };
         UpdateSessionRequest: {
             summary?: string | null;
+            /** @description Replaces the full session model policy; null clears it. */
+            model_policy?: components["schemas"]["SessionModelPolicy"] | null;
             metadata?: components["schemas"]["Metadata"];
         };
         ForkSessionRequest: {
@@ -1248,6 +1542,49 @@ export interface components {
             removed_turn_count: number;
             new_tip_turn_id: string | null;
             session: components["schemas"]["Session"];
+        };
+        LiveSessionClient: {
+            client_id: string;
+            /** @enum {string} */
+            mode: "observer" | "controller";
+            /** @description Runtime liveness marker for when the client first attached. */
+            attached_at: string;
+            /** @description Runtime liveness marker refreshed by attach or heartbeat. */
+            last_seen_at: string;
+            prompt_injection: boolean;
+            permission_routing: boolean;
+            metadata: components["schemas"]["Metadata"];
+        };
+        AttachSessionClientRequest: {
+            client_id: string;
+            /**
+             * @default observer
+             * @enum {string}
+             */
+            mode: "observer" | "controller";
+            /** @default false */
+            takeover: boolean;
+            /** @description Defaults to true for controllers and false for observers. */
+            prompt_injection?: boolean;
+            /** @description Defaults to true for controllers and false for observers. */
+            permission_routing?: boolean;
+            metadata?: components["schemas"]["Metadata"];
+        };
+        SessionClientRequest: {
+            client_id: string;
+            reason?: string | null;
+            metadata?: components["schemas"]["Metadata"];
+        };
+        LiveSessionClientChange: {
+            client: components["schemas"]["LiveSessionClient"] | null;
+            previous_controller_id: string | null;
+            active_controller_id: string | null;
+            clients: components["schemas"]["LiveSessionClient"][];
+        };
+        LiveSessionClientList: {
+            /** @enum {string} */
+            object: "list";
+            data: components["schemas"]["LiveSessionClient"][];
         };
         Task: components["schemas"]["ResourceEnvelope"] & {
             /** @enum {string} */
@@ -1316,6 +1653,158 @@ export interface components {
             reviewer?: string | null;
             reason?: string | null;
             metadata?: components["schemas"]["Metadata"];
+            /**
+             * @description When the approver wants the verdict remembered, the scope at
+             *     which to apply it. Honored only when `remember` is true.
+             * @enum {string|null}
+             */
+            scope?: "session" | "workspace" | "user" | "always" | null;
+            /**
+             * Format: date-time
+             * @description Optional auto-revoke timestamp for time-bound grants.
+             */
+            expires_at?: string | null;
+            /**
+             * @description When true and the response approves or denies, materializes a
+             *     persistent rule keyed off `scope` + `action_pattern` +
+             *     `target_pattern`.
+             */
+            remember?: boolean | null;
+            /** @description Glob pattern matched against future `PermissionRequest.action`. */
+            action_pattern?: string | null;
+            /** @description Glob pattern matched against future `PermissionRequest.target`. */
+            target_pattern?: string | null;
+            /** @enum {string|null} */
+            class?: "read" | "write" | "exec" | "net" | "llm" | "custom" | null;
+        };
+        /**
+         * @description Declared permission policy: read/write/exec globs, net host
+         *     allowlist, llm provider list + optional cost ceiling,
+         *     redaction patterns, escalation chain.
+         */
+        PermissionPolicy: {
+            read?: string[];
+            write?: string[];
+            exec?: string[];
+            net?: string[];
+            llm?: {
+                providers?: string[];
+                cost_ceiling_usd_cents?: number | null;
+            };
+            redact?: {
+                transcript?: string[];
+                logs?: string[];
+            };
+            /**
+             * @description Free-form identifiers tried in order (persona URI, the
+             *     literal `user`, group name). The first online escalator
+             *     receives the request.
+             */
+            escalate_to?: string[];
+        };
+        PermissionPolicyResponse: {
+            /** @enum {string} */
+            object: "permission_policy";
+            /** @description Content-hashed policy version. */
+            version: string;
+            policy: components["schemas"]["PermissionPolicy"];
+        };
+        RememberRule: {
+            /** @description UUIDv7-prefixed rule identifier. */
+            id: string;
+            tenant_id?: string | null;
+            /** @enum {string} */
+            scope: "session" | "workspace" | "user" | "always";
+            /** @description Session id, workspace id, or actor, depending on scope. */
+            scope_value?: string | null;
+            /** @enum {string} */
+            class: "read" | "write" | "exec" | "net" | "llm" | "custom";
+            action_pattern: string;
+            target_pattern: string;
+            allow: boolean;
+            reason?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            created_by: string;
+            /** Format: date-time */
+            expires_at?: string | null;
+            /** Format: date-time */
+            revoked_at?: string | null;
+        };
+        RememberRuleList: components["schemas"]["PaginatedList"] & {
+            data?: components["schemas"]["RememberRule"][];
+        };
+        PermissionCheckRequest: {
+            id?: string | null;
+            tenant_id?: string | null;
+            session_id: string;
+            workspace_id?: string | null;
+            actor: string;
+            /** @enum {string} */
+            class: "read" | "write" | "exec" | "net" | "llm" | "custom";
+            action: string;
+            target: string;
+            /** @enum {string|null} */
+            risk?: "low" | "medium" | "high" | "critical" | null;
+            context?: {
+                [key: string]: unknown;
+            };
+            reason?: string | null;
+            /** Format: date-time */
+            requested_at?: string;
+        };
+        PermissionCheckResponse: {
+            /** @enum {string} */
+            object: "permission_decision";
+            request_id: string;
+            decision: components["schemas"]["PermissionDecisionGranted"] | components["schemas"]["PermissionDecisionDenied"] | components["schemas"]["PermissionDecisionSuspend"];
+        };
+        PermissionDecisionGranted: {
+            /** @enum {string} */
+            outcome: "granted";
+            /** @enum {string} */
+            scope: "session" | "workspace" | "user" | "always";
+            policy_version: string;
+            reason?: string | null;
+            /** Format: date-time */
+            expires_at?: string | null;
+            rule_id?: string | null;
+        };
+        PermissionDecisionDenied: {
+            /** @enum {string} */
+            outcome: "denied";
+            /** @enum {string} */
+            scope: "session" | "workspace" | "user" | "always";
+            policy_version: string;
+            reason?: string | null;
+            rule_id?: string | null;
+        };
+        PermissionDecisionSuspend: {
+            /** @enum {string} */
+            outcome: "suspend";
+            policy_version: string;
+            escalate_to: string[];
+            reason?: string | null;
+        };
+        AuditEntry: {
+            request: components["schemas"]["PermissionCheckRequest"];
+            /** @enum {string} */
+            outcome: "granted" | "denied" | "escalated";
+            /** @enum {string|null} */
+            scope?: "session" | "workspace" | "user" | "always" | null;
+            policy_version: string;
+            /** @enum {string} */
+            risk: "low" | "medium" | "high" | "critical";
+            rule_id?: string | null;
+            reason?: string | null;
+            /** Format: date-time */
+            expires_at?: string | null;
+            /** Format: date-time */
+            decided_at: string;
+            decided_by?: string | null;
+        };
+        AuditEntryList: components["schemas"]["PaginatedList"] & {
+            data?: components["schemas"]["AuditEntry"][];
         };
         /**
          * @description `exact` reuses only recorded event-log material, `with_overrides`
@@ -1441,7 +1930,7 @@ export interface components {
         };
         AppendTaskMessageRequest: {
             /** @enum {string} */
-            kind: "input" | "interrupt" | "tool_confirmation";
+            kind: "input";
             message: components["schemas"]["MessageInput"];
         };
         Part: components["schemas"]["TextPart"] | components["schemas"]["JsonPart"] | components["schemas"]["ToolCallPart"] | components["schemas"]["ToolResultPart"] | components["schemas"]["ArtifactRefPart"] | components["schemas"]["FileRefPart"] | components["schemas"]["ImageRefPart"];
@@ -2015,6 +2504,30 @@ export interface operations {
             default: components["responses"]["Error"];
         };
     };
+    getProviderCatalog: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Provider/model catalog. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderCatalog"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
     listTools: {
         parameters: {
             query?: {
@@ -2527,6 +3040,160 @@ export interface operations {
             default: components["responses"]["Error"];
         };
     };
+    listSessionLiveClients: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path: {
+                session_id: components["parameters"]["SessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Attached live clients. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveSessionClientList"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    attachSessionClient: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+                /** @description Client-generated key used to safely retry non-idempotent writes. */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                session_id: components["parameters"]["SessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachSessionClientRequest"];
+            };
+        };
+        responses: {
+            /** @description Live-client ownership state. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveSessionClientChange"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    takeoverSessionClient: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+                /** @description Client-generated key used to safely retry non-idempotent writes. */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                session_id: components["parameters"]["SessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SessionClientRequest"];
+            };
+        };
+        responses: {
+            /** @description Live-client ownership state. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveSessionClientChange"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    detachSessionClient: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+                /** @description Client-generated key used to safely retry non-idempotent writes. */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                session_id: components["parameters"]["SessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SessionClientRequest"];
+            };
+        };
+        responses: {
+            /** @description Live-client ownership state. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveSessionClientChange"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    heartbeatSessionClient: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+                /** @description Client-generated key used to safely retry non-idempotent writes. */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                session_id: components["parameters"]["SessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SessionClientRequest"];
+            };
+        };
+        responses: {
+            /** @description Live-client ownership state. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveSessionClientChange"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
     forkSession: {
         parameters: {
             query?: never;
@@ -2936,13 +3603,22 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Updated Task. */
+            /** @description Updated Task. Repeated cancellation returns the existing canceled Task unchanged. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["Task"];
+                };
+            };
+            /** @description The Task already completed or failed and its terminal outcome is preserved. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
             default: components["responses"]["Error"];
@@ -3033,6 +3709,193 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PermissionRequest"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getPermissionPolicy: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Installed permission policy. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionPolicyResponse"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    installPermissionPolicy: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PermissionPolicy"];
+            };
+        };
+        responses: {
+            /** @description Installed permission policy. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionPolicyResponse"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listPermissionRules: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Rule list. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RememberRuleList"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    createPermissionRule: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RememberRule"];
+            };
+        };
+        responses: {
+            /** @description Created rule. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RememberRule"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    revokePermissionRule: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path: {
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Rule revoked. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getPermissionHistory: {
+        parameters: {
+            query?: {
+                session_id?: string;
+                workspace_id?: string;
+                tenant_id?: string;
+                actor?: string;
+                outcome?: "granted" | "denied" | "escalated";
+                limit?: components["parameters"]["Limit"];
+            };
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Audit entry list. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditEntryList"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    checkPermission: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Date-stamped Harn Agents Protocol version. */
+                "Harn-Agents-Protocol-Version": components["parameters"]["ProtocolVersion"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PermissionCheckRequest"];
+            };
+        };
+        responses: {
+            /** @description Decision and request id. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionCheckResponse"];
                 };
             };
             default: components["responses"]["Error"];

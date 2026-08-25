@@ -3,8 +3,7 @@
 TypeScript SDK for the Harn Agents API.
 
 The package name is `@burin-labs/harn`. This repo vendors the OpenAPI 3.1
-contract in `spec/openapi.yaml` and generates TypeScript schema/path types with
-`openapi-typescript`.
+contract and generated TypeScript protocol client from Harn v0.10.116.
 
 ## Install
 
@@ -42,10 +41,42 @@ for await (const event of client.streamTaskEvents(task.id)) {
 }
 ```
 
+## Add Harn to an existing app
+
+The generated protocol client exposes all 85 operations from Harn v0.10.116.
+Import only the operation and response types needed by one route:
+
+```ts
+import {
+  createHarnProtocolClient,
+  HARN_PROTOCOL_HEADERS,
+} from "@burin-labs/harn";
+import { getProviderCatalog } from "@burin-labs/harn/protocol";
+
+const harn = createHarnProtocolClient({
+  baseUrl: process.env.HARN_BASE_URL,
+  accessToken: process.env.HARN_ACCESS_TOKEN,
+});
+
+app.get("/models", async (_request, response) => {
+  const result = await getProviderCatalog({
+    client: harn,
+    headers: HARN_PROTOCOL_HEADERS,
+  });
+  response.status(result.response?.status ?? 200).json(result.data ?? result.error);
+});
+```
+
+See [`examples/express-provider-catalog.ts`](examples/express-provider-catalog.ts)
+for a runnable Express app. It is executed by the test suite with an injected
+transport, so it does not need credentials or a live Harn server.
+
 ## What is included
 
 - Typed resource aliases generated from `spec/openapi.yaml`.
-- `HarnClient` wrappers for every v1 REST operation.
+- Release-generated functions and host-language types for all 85 protocol
+  operations under `@burin-labs/harn/protocol`.
+- Compatibility `HarnClient` wrappers for the original 72-operation surface.
 - Local Harn runtime discovery helpers for health, version, capabilities, and
   local control-plane tools.
 - Workspace UTF-8 file read/write helpers.
@@ -98,17 +129,22 @@ received from your HTTP framework, before JSON parsing.
 
 ```sh
 pnpm install --frozen-lockfile
+pnpm check:protocol
 pnpm generate:types
 pnpm typecheck
 pnpm check:examples
 pnpm check:tests
 pnpm test
 pnpm build
+pnpm check:built-package
 pnpm pack:dry-run
 ```
 
-The generated OpenAPI types live in `src/generated/openapi.ts`. Regenerate them
-after updating `spec/openapi.yaml`.
+The release-generated protocol client lives in `src/generated/protocol/`.
+Do not hand-edit it. Its manifest and operation coverage are checked by
+`pnpm check:protocol`; see
+[`docs/PROTOCOL_GENERATION.md`](docs/PROTOCOL_GENERATION.md). The compatibility
+types in `src/generated/openapi.ts` are regenerated from the same pinned spec.
 
 ## Publishing
 
