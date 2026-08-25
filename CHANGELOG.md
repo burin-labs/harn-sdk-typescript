@@ -5,6 +5,22 @@ All notable changes to `@burin-labs/harn` are tracked here. The format follows
 
 ## Unreleased
 
+### Added
+
+- Added the release-generated Harn v0.10.116 protocol client and types at
+  `@burin-labs/harn/protocol`, covering all 85 OpenAPI operations. The
+  `createHarnProtocolClient` factory supplies the protocol header, validates
+  the base URL, and configures bearer authentication without wrapping the
+  generated operations.
+- Added a runnable Express route and executing integration test for incremental
+  adoption in an existing application.
+
+### Changed
+
+- Updated `spec/openapi.yaml` and its compatibility type projection from 72 to
+  85 operations. The generated protocol module now owns operation coverage;
+  `HarnClient` remains a compatibility adapter for its prior surface.
+
 ### Security
 
 - **F1 (HIGH) — Cross-host bearer leak guard.** The `Authorization` header is
@@ -26,7 +42,7 @@ All notable changes to `@burin-labs/harn` are tracked here. The format follows
   aliases of `accessToken` / `bearerTokenAuth`. Both code paths continue to
   work; new code should use the explicit bearer names.
 
-### Changed
+### Maintenance
 
 - **Dependencies.** Upgraded dev dependencies to latest: `@types/node`
   (25 → 26, major), `tsx` (4.22 → 4.23), `vitest` (4.1.9 → 4.1.10). Bumped
