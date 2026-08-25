@@ -25,11 +25,13 @@ jobs:
       matrix:
         node: [22, 24]
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6.0.10
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
           version: 10.31.0
-      - uses: actions/setup-node@v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
@@ -42,7 +44,7 @@ jobs:
       - run: pnpm build
       - run: pnpm check:built-package
       - run: pnpm pack:dry-run
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist-node-${{ matrix.node }}
           path: dist/
@@ -53,11 +55,15 @@ jobs:
     if: always()
     needs: [test]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
-      - name: Check for failures
-        run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            echo "One or more CI jobs failed"
-            exit 1
-          fi
-          echo "All CI jobs passed or were skipped"
+      - name: Check commit signatures
+        uses: burin-labs/.github/.github/actions/check-commit-signatures@80aff37b3b233bf6498eb4c0c6031d0b5365db86
+        with:
+          github-token: ${{ github.token }}
+      - name: Require successful jobs
+        uses: burin-labs/.github/.github/actions/require-successful-needs@80aff37b3b233bf6498eb4c0c6031d0b5365db86
+        with:
+          results-json: ${{ toJSON(needs.*.result) }}
