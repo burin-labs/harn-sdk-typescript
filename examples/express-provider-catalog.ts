@@ -1,9 +1,6 @@
 import express from "express";
 import { pathToFileURL } from "node:url";
-import {
-  createHarnProtocolClient,
-  HARN_PROTOCOL_HEADERS,
-} from "../src/index.js";
+import { createHarnProtocolClient } from "../src/index.js";
 import { getProviderCatalog } from "../src/protocol.js";
 import type { ProtocolClient } from "../src/protocol.js";
 
@@ -14,7 +11,6 @@ export function createProviderCatalogApp(client: ProtocolClient) {
     try {
       const result = await getProviderCatalog({
         client,
-        headers: HARN_PROTOCOL_HEADERS,
       });
       if (result.error !== undefined) {
         response.status(result.response?.status ?? 502).json(result.error);

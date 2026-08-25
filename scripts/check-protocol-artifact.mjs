@@ -15,13 +15,14 @@ typescript=typescript@6.0.3
 `;
 const EXPECTED_SPEC_SHA256 = "279739bbe7aff1242dcdb68d6061776277927701b8e0da3fd1d80120b200557a";
 const EXPECTED_NORMALIZED_ARTIFACT_SHA256 =
-  "29d153a16b0bc2b5a7cf9b6e200f44edb2cc676c08e9400e7718feec523f51e3";
+  "284de212f1f190a2688029e2581439c206a509d35d4bdfa1b053da9a80080324";
 const artifactRoot = "src/generated/protocol";
 
-const [manifest, specSource, generatedIndex] = await Promise.all([
+const [manifest, specSource, generatedIndex, generatedTypes] = await Promise.all([
   readFile("src/generated/protocol/harn-sdk-generation.txt", "utf8"),
   readFile("spec/openapi.yaml", "utf8"),
   readFile("src/generated/protocol/index.ts", "utf8"),
+  readFile("src/generated/protocol/types.gen.ts", "utf8"),
 ]);
 
 assertEqual(manifest, EXPECTED_MANIFEST, "generation manifest");
@@ -69,6 +70,8 @@ if (operationIds.size !== 85 || missing.length > 0) {
       `missing: ${missing.join(", ") || "none"}`,
   );
 }
+const optionalProtocolHeaders = generatedTypes.match(/^    headers\?: \{$/gm) ?? [];
+assertEqual(optionalProtocolHeaders.length, 80, "optional protocol-header container count");
 
 console.log(`Verified Harn v0.10.116 protocol artifact: ${operationIds.size} operations.`);
 

@@ -23,7 +23,8 @@ Only ingest an artifact from a released Harn tag. Copy the artifact into
 `src/generated/protocol/`, replace `spec/openapi.yaml` with the exact release
 spec, then run `pnpm normalize:protocol`. This deterministic packaging step
 adds `.js` to relative module specifiers so the compiled output works in Node
-ESM; it does not change the generated API. Update the pinned values in
+ESM. It also makes the generated protocol-header containers optional because
+`createHarnProtocolClient` supplies that header once. Update the pinned values in
 `scripts/check-protocol-artifact.mjs` only when the release changes.
 
 Run:

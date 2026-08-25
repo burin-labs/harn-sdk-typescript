@@ -10,7 +10,7 @@ for (const entry of entries) {
   if (!entry.isFile() || !entry.name.endsWith(".ts")) continue;
   const path = join(entry.parentPath, entry.name);
   const source = await readFile(path, "utf8");
-  const normalized = source.replace(
+  let normalized = source.replace(
     /(\bfrom\s+['"])(\.[^'"]+)(['"])/g,
     (_match, prefix, specifier, suffix) => {
       const withoutJs = specifier.replace(/\.js$/, "");
@@ -24,13 +24,16 @@ for (const entry of entries) {
       return `${prefix}${resolved}${suffix}`;
     },
   );
+  if (path.endsWith("types.gen.ts")) {
+    normalized = normalized.replace(/^    headers: \{$/gm, "    headers?: {");
+  }
   if (normalized !== source) {
     await writeFile(path, normalized);
     changed += 1;
   }
 }
 
-console.log(`Normalized Node ESM imports in ${changed} generated files.`);
+console.log(`Normalized protocol artifact in ${changed} generated files.`);
 
 function hasRuntimeExtension(specifier) {
   return /\.(?:cjs|js|json|mjs)$/.test(specifier);

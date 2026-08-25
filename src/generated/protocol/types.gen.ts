@@ -1284,7 +1284,7 @@ export type GetProtocolDiscoveryResponse = GetProtocolDiscoveryResponses[keyof G
 
 export type GetRuntimeData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1315,7 +1315,7 @@ export type GetRuntimeResponse = GetRuntimeResponses[keyof GetRuntimeResponses];
 
 export type ListCapabilitiesData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1346,7 +1346,7 @@ export type ListCapabilitiesResponse = ListCapabilitiesResponses[keyof ListCapab
 
 export type GetProviderCatalogData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1377,7 +1377,7 @@ export type GetProviderCatalogResponse = GetProviderCatalogResponses[keyof GetPr
 
 export type ListToolsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1411,7 +1411,7 @@ export type ListToolsResponse = ListToolsResponses[keyof ListToolsResponses];
 
 export type GetToolData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1469,7 +1469,7 @@ export type GetAgentCardResponse = GetAgentCardResponses[keyof GetAgentCardRespo
 
 export type ListPersonasData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1503,7 +1503,7 @@ export type ListPersonasResponse = ListPersonasResponses[keyof ListPersonasRespo
 
 export type CreatePersonaData = {
     body: CreatePersonaRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1538,7 +1538,7 @@ export type CreatePersonaResponse = CreatePersonaResponses[keyof CreatePersonaRe
 
 export type GetPersonaData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1571,7 +1571,7 @@ export type GetPersonaResponse = GetPersonaResponses[keyof GetPersonaResponses];
 
 export type UpdatePersonaData = {
     body: UpdatePersonaRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1608,7 +1608,7 @@ export type UpdatePersonaResponse = UpdatePersonaResponses[keyof UpdatePersonaRe
 
 export type ListWorkspacesData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1642,7 +1642,7 @@ export type ListWorkspacesResponse = ListWorkspacesResponses[keyof ListWorkspace
 
 export type CreateWorkspaceData = {
     body: CreateWorkspaceRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1677,7 +1677,7 @@ export type CreateWorkspaceResponse = CreateWorkspaceResponses[keyof CreateWorks
 
 export type GetWorkspaceData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1710,7 +1710,7 @@ export type GetWorkspaceResponse = GetWorkspaceResponses[keyof GetWorkspaceRespo
 
 export type UpdateWorkspaceData = {
     body: UpdateWorkspaceRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1747,7 +1747,7 @@ export type UpdateWorkspaceResponse = UpdateWorkspaceResponses[keyof UpdateWorks
 
 export type ReadWorkspaceFileData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1785,7 +1785,7 @@ export type ReadWorkspaceFileResponse = ReadWorkspaceFileResponses[keyof ReadWor
 
 export type WriteWorkspaceFileData = {
     body: WriteWorkspaceFileRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1827,7 +1827,7 @@ export type WriteWorkspaceFileResponse = WriteWorkspaceFileResponses[keyof Write
 
 export type ListSessionsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1862,7 +1862,7 @@ export type ListSessionsResponse = ListSessionsResponses[keyof ListSessionsRespo
 
 export type CreateSessionData = {
     body: CreateSessionRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1897,7 +1897,7 @@ export type CreateSessionResponse = CreateSessionResponses[keyof CreateSessionRe
 
 export type GetSessionData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1930,7 +1930,7 @@ export type GetSessionResponse = GetSessionResponses[keyof GetSessionResponses];
 
 export type UpdateSessionData = {
     body: UpdateSessionRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -1967,7 +1967,7 @@ export type UpdateSessionResponse = UpdateSessionResponses[keyof UpdateSessionRe
 
 export type CloseSessionData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2004,7 +2004,7 @@ export type CloseSessionResponse = CloseSessionResponses[keyof CloseSessionRespo
 
 export type ListSessionLiveClientsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2037,7 +2037,7 @@ export type ListSessionLiveClientsResponse = ListSessionLiveClientsResponses[key
 
 export type AttachSessionClientData = {
     body: AttachSessionClientRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2074,7 +2074,7 @@ export type AttachSessionClientResponse = AttachSessionClientResponses[keyof Att
 
 export type TakeoverSessionClientData = {
     body: SessionClientRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2111,7 +2111,7 @@ export type TakeoverSessionClientResponse = TakeoverSessionClientResponses[keyof
 
 export type DetachSessionClientData = {
     body: SessionClientRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2148,7 +2148,7 @@ export type DetachSessionClientResponse = DetachSessionClientResponses[keyof Det
 
 export type HeartbeatSessionClientData = {
     body: SessionClientRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2185,7 +2185,7 @@ export type HeartbeatSessionClientResponse = HeartbeatSessionClientResponses[key
 
 export type ForkSessionData = {
     body?: ForkSessionRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2222,7 +2222,7 @@ export type ForkSessionResponse = ForkSessionResponses[keyof ForkSessionResponse
 
 export type TruncateSessionData = {
     body: TruncateSessionRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2259,7 +2259,7 @@ export type TruncateSessionResponse2 = TruncateSessionResponses[keyof TruncateSe
 
 export type ListSessionMessagesData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2295,7 +2295,7 @@ export type ListSessionMessagesResponse = ListSessionMessagesResponses[keyof Lis
 
 export type AppendSessionMessageData = {
     body: AppendMessageRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2332,7 +2332,7 @@ export type AppendSessionMessageResponse = AppendSessionMessageResponses[keyof A
 
 export type ListSessionTasksData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2368,7 +2368,7 @@ export type ListSessionTasksResponse = ListSessionTasksResponses[keyof ListSessi
 
 export type SubmitSessionTaskData = {
     body: SubmitTaskRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2405,7 +2405,7 @@ export type SubmitSessionTaskResponse = SubmitSessionTaskResponses[keyof SubmitS
 
 export type ListSessionBranchesData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2441,7 +2441,7 @@ export type ListSessionBranchesResponse = ListSessionBranchesResponses[keyof Lis
 
 export type CreateSessionBranchData = {
     body: CreateBranchRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2478,7 +2478,7 @@ export type CreateSessionBranchResponse = CreateSessionBranchResponses[keyof Cre
 
 export type ListSessionEventsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2514,7 +2514,7 @@ export type ListSessionEventsResponse = ListSessionEventsResponses[keyof ListSes
 
 export type StreamSessionEventsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2551,7 +2551,7 @@ export type StreamSessionEventsResponse = StreamSessionEventsResponses[keyof Str
 
 export type ListTasksData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2587,7 +2587,7 @@ export type ListTasksResponse = ListTasksResponses[keyof ListTasksResponses];
 
 export type SubmitTaskData = {
     body: SubmitTaskRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2622,7 +2622,7 @@ export type SubmitTaskResponse = SubmitTaskResponses[keyof SubmitTaskResponses];
 
 export type GetTaskData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2655,7 +2655,7 @@ export type GetTaskResponse = GetTaskResponses[keyof GetTaskResponses];
 
 export type CancelTaskData = {
     body?: CancelTaskRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2696,7 +2696,7 @@ export type CancelTaskResponse = CancelTaskResponses[keyof CancelTaskResponses];
 
 export type ListPermissionRequestsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2732,7 +2732,7 @@ export type ListPermissionRequestsResponse = ListPermissionRequestsResponses[key
 
 export type ListTaskPermissionRequestsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2768,7 +2768,7 @@ export type ListTaskPermissionRequestsResponse = ListTaskPermissionRequestsRespo
 
 export type RespondPermissionRequestData = {
     body: PermissionResponseRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2805,7 +2805,7 @@ export type RespondPermissionRequestResponse = RespondPermissionRequestResponses
 
 export type GetPermissionPolicyData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2836,7 +2836,7 @@ export type GetPermissionPolicyResponse = GetPermissionPolicyResponses[keyof Get
 
 export type InstallPermissionPolicyData = {
     body: PermissionPolicy;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2867,7 +2867,7 @@ export type InstallPermissionPolicyResponse = InstallPermissionPolicyResponses[k
 
 export type ListPermissionRulesData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2898,7 +2898,7 @@ export type ListPermissionRulesResponse = ListPermissionRulesResponses[keyof Lis
 
 export type CreatePermissionRuleData = {
     body: RememberRule;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2929,7 +2929,7 @@ export type CreatePermissionRuleResponse = CreatePermissionRuleResponses[keyof C
 
 export type RevokePermissionRuleData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -2962,7 +2962,7 @@ export type RevokePermissionRuleResponse = RevokePermissionRuleResponses[keyof R
 
 export type GetPermissionHistoryData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3000,7 +3000,7 @@ export type GetPermissionHistoryResponse = GetPermissionHistoryResponses[keyof G
 
 export type CheckPermissionData = {
     body: PermissionCheckRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3031,7 +3031,7 @@ export type CheckPermissionResponse = CheckPermissionResponses[keyof CheckPermis
 
 export type ReplayTaskData = {
     body?: ReplayTaskRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3068,7 +3068,7 @@ export type ReplayTaskResponse = ReplayTaskResponses[keyof ReplayTaskResponses];
 
 export type AppendTaskMessageData = {
     body: AppendTaskMessageRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3105,7 +3105,7 @@ export type AppendTaskMessageResponse = AppendTaskMessageResponses[keyof AppendT
 
 export type ListTaskEventsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3141,7 +3141,7 @@ export type ListTaskEventsResponse = ListTaskEventsResponses[keyof ListTaskEvent
 
 export type StreamTaskEventsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3178,7 +3178,7 @@ export type StreamTaskEventsResponse = StreamTaskEventsResponses[keyof StreamTas
 
 export type ListTaskReceiptsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3214,7 +3214,7 @@ export type ListTaskReceiptsResponse = ListTaskReceiptsResponses[keyof ListTaskR
 
 export type GetBranchData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3247,7 +3247,7 @@ export type GetBranchResponse = GetBranchResponses[keyof GetBranchResponses];
 
 export type GetMessageData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3280,7 +3280,7 @@ export type GetMessageResponse = GetMessageResponses[keyof GetMessageResponses];
 
 export type ListArtifactsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3317,7 +3317,7 @@ export type ListArtifactsResponse = ListArtifactsResponses[keyof ListArtifactsRe
 
 export type RegisterArtifactData = {
     body: RegisterArtifactRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3352,7 +3352,7 @@ export type RegisterArtifactResponse = RegisterArtifactResponses[keyof RegisterA
 
 export type GetArtifactData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3385,7 +3385,7 @@ export type GetArtifactResponse = GetArtifactResponses[keyof GetArtifactResponse
 
 export type DownloadArtifactContentData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3418,7 +3418,7 @@ export type DownloadArtifactContentResponse = DownloadArtifactContentResponses[k
 
 export type ListEventsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3455,7 +3455,7 @@ export type ListEventsResponse = ListEventsResponses[keyof ListEventsResponses];
 
 export type GetEventData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3488,7 +3488,7 @@ export type GetEventResponse = GetEventResponses[keyof GetEventResponses];
 
 export type StreamEventsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3527,7 +3527,7 @@ export type StreamEventsResponse = StreamEventsResponses[keyof StreamEventsRespo
 
 export type GetReceiptData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3560,7 +3560,7 @@ export type GetReceiptResponse = GetReceiptResponses[keyof GetReceiptResponses];
 
 export type VerifyReceiptData = {
     body?: VerifyReceiptRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3597,7 +3597,7 @@ export type VerifyReceiptResponse = VerifyReceiptResponses[keyof VerifyReceiptRe
 
 export type ListMemoriesData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3633,7 +3633,7 @@ export type ListMemoriesResponse = ListMemoriesResponses[keyof ListMemoriesRespo
 
 export type CreateMemoryData = {
     body: CreateMemoryRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3668,7 +3668,7 @@ export type CreateMemoryResponse = CreateMemoryResponses[keyof CreateMemoryRespo
 
 export type DeleteMemoryData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3705,7 +3705,7 @@ export type DeleteMemoryResponse = DeleteMemoryResponses[keyof DeleteMemoryRespo
 
 export type GetMemoryData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3738,7 +3738,7 @@ export type GetMemoryResponse = GetMemoryResponses[keyof GetMemoryResponses];
 
 export type ListVaultsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3773,7 +3773,7 @@ export type ListVaultsResponse = ListVaultsResponses[keyof ListVaultsResponses];
 
 export type CreateVaultData = {
     body: CreateVaultRequest;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3808,7 +3808,7 @@ export type CreateVaultResponse = CreateVaultResponses[keyof CreateVaultResponse
 
 export type GetVaultData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3841,7 +3841,7 @@ export type GetVaultResponse = GetVaultResponses[keyof GetVaultResponses];
 
 export type ListConnectorsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3876,7 +3876,7 @@ export type ListConnectorsResponse = ListConnectorsResponses[keyof ListConnector
 
 export type GetConnectorData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3909,7 +3909,7 @@ export type GetConnectorResponse = GetConnectorResponses[keyof GetConnectorRespo
 
 export type ListSkillsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3943,7 +3943,7 @@ export type ListSkillsResponse = ListSkillsResponses[keyof ListSkillsResponses];
 
 export type GetSkillData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -3976,7 +3976,7 @@ export type GetSkillResponse = GetSkillResponses[keyof GetSkillResponses];
 
 export type ListOutcomesData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -4011,7 +4011,7 @@ export type ListOutcomesResponse = ListOutcomesResponses[keyof ListOutcomesRespo
 
 export type GetOutcomeData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -4044,7 +4044,7 @@ export type GetOutcomeResponse = GetOutcomeResponses[keyof GetOutcomeResponses];
 
 export type ListQuotasData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */
@@ -4078,7 +4078,7 @@ export type ListQuotasResponse = ListQuotasResponses[keyof ListQuotasResponses];
 
 export type GetQuotaData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Date-stamped Harn Agents Protocol version.
          */

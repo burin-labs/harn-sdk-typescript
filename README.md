@@ -49,7 +49,6 @@ Import only the operation and response types needed by one route:
 ```ts
 import {
   createHarnProtocolClient,
-  HARN_PROTOCOL_HEADERS,
 } from "@burin-labs/harn";
 import { getProviderCatalog } from "@burin-labs/harn/protocol";
 
@@ -61,7 +60,6 @@ const harn = createHarnProtocolClient({
 app.get("/models", async (_request, response) => {
   const result = await getProviderCatalog({
     client: harn,
-    headers: HARN_PROTOCOL_HEADERS,
   });
   response.status(result.response?.status ?? 200).json(result.data ?? result.error);
 });
