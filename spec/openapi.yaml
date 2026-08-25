@@ -5,10 +5,9 @@ info:
   summary: OpenAPI description for the Harn Agents Protocol v1 REST surface.
   description: |
     Machine-readable REST and SSE contract for managed Harn agents. The
-    narrative protocol requirements are published as the Harn Agents Protocol
-    v1 specification. This document fixes the v1 paths, request bodies,
-    response envelopes, and resource schemas used by SDKs and conformance
-    fixtures.
+    narrative protocol requirements live in `spec/AGENTS_PROTOCOL.md`; this
+    document fixes the v1 paths, request bodies, response envelopes, and
+    resource schemas used by SDKs and conformance fixtures.
   license:
     name: Apache-2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
@@ -20,7 +19,7 @@ externalDocs:
   url: https://harnlang.com/spec/agents-protocol/v1
 servers:
   - url: https://api.harnlang.com
-    description: Harn Cloud production API.
+    description: Managed cloud production API.
   - url: http://localhost:8080
     description: Local Harness development server.
 security:
@@ -143,6 +142,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CapabilitySummary"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/provider-catalog:
+    get:
+      tags: [Runtime]
+      operationId: getProviderCatalog
+      summary: Read the normalized Harn provider/model catalog.
+      description: |
+        Returns the same provider catalog v6 artifact shape as Harn's checked-in
+        catalog, using the runtime's effective provider and capability overlays.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+      responses:
+        "200":
+          description: Provider/model catalog.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderCatalog"
         default:
           $ref: "#/components/responses/Error"
 
@@ -510,6 +529,124 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /v1/sessions/{session_id}/live-clients:
+    get:
+      tags: [Sessions]
+      operationId: listSessionLiveClients
+      summary: List live clients attached to a Session.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: Attached live clients.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveSessionClientList"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/sessions/{session_id}/attach:
+    post:
+      tags: [Sessions]
+      operationId: attachSessionClient
+      summary: Attach a live client to a Session.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttachSessionClientRequest"
+      responses:
+        "200":
+          description: Live-client ownership state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveSessionClientChange"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/sessions/{session_id}/takeover:
+    post:
+      tags: [Sessions]
+      operationId: takeoverSessionClient
+      summary: Attach a client as the active Session controller.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionClientRequest"
+      responses:
+        "200":
+          description: Live-client ownership state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveSessionClientChange"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/sessions/{session_id}/detach:
+    post:
+      tags: [Sessions]
+      operationId: detachSessionClient
+      summary: Detach a live client from a Session.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionClientRequest"
+      responses:
+        "200":
+          description: Live-client ownership state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveSessionClientChange"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/sessions/{session_id}/heartbeat:
+    post:
+      tags: [Sessions]
+      operationId: heartbeatSessionClient
+      summary: Refresh an attached live client's liveness marker.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionClientRequest"
+      responses:
+        "200":
+          description: Live-client ownership state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveSessionClientChange"
+        default:
+          $ref: "#/components/responses/Error"
+
   /v1/sessions/{session_id}/fork:
     post:
       tags: [Sessions]
@@ -806,11 +943,17 @@ paths:
               $ref: "#/components/schemas/CancelTaskRequest"
       responses:
         "200":
-          description: Updated Task.
+          description: Updated Task. Repeated cancellation returns the existing canceled Task unchanged.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
+        "409":
+          description: The Task already completed or failed and its terminal outcome is preserved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
 
@@ -884,6 +1027,195 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /v1/permissions/policy:
+    get:
+      tags: [Permissions]
+      operationId: getPermissionPolicy
+      summary: Read the currently-installed permission policy.
+      description: |
+        Returns the declared permission policy (read/write/exec/net globs,
+        llm provider allowlist with optional cost ceiling, redaction
+        patterns, escalation chain) together with its content-hashed
+        version. Every audit entry pins the version it was decided
+        against so historical evaluations stay reproducible.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+      responses:
+        "200":
+          description: Installed permission policy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermissionPolicyResponse"
+        default:
+          $ref: "#/components/responses/Error"
+    put:
+      tags: [Permissions]
+      operationId: installPermissionPolicy
+      summary: Replace the active permission policy.
+      description: |
+        Validates the supplied policy (rejects empty patterns and invalid
+        globs at parse time) and installs it. The previous version is
+        replaced atomically; in-flight requests evaluated against the
+        old version remain unaffected.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PermissionPolicy"
+      responses:
+        "200":
+          description: Installed permission policy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermissionPolicyResponse"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/permissions/rules:
+    get:
+      tags: [Permissions]
+      operationId: listPermissionRules
+      summary: List active "remember" rules.
+      description: |
+        Returns every non-revoked, non-expired rule the store knows about,
+        ordered narrowest-scope-first.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+      responses:
+        "200":
+          description: Rule list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RememberRuleList"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      tags: [Permissions]
+      operationId: createPermissionRule
+      summary: Install a new "remember" rule.
+      description: |
+        Materializes a persistent rule that pins one action+target
+        glob to a verdict at the chosen scope. Use the
+        `respond_permission_request` endpoint with `remember: true`
+        for the in-flight equivalent.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RememberRule"
+      responses:
+        "200":
+          description: Created rule.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RememberRule"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/permissions/rules/{rule_id}:
+    delete:
+      tags: [Permissions]
+      operationId: revokePermissionRule
+      summary: Soft-revoke a "remember" rule.
+      description: |
+        Marks the rule as revoked. Subsequent evaluations skip it; the
+        original row is preserved for audit. Use the audit API to find
+        the original `created_at`/`created_by` after revocation.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - in: path
+          name: rule_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Rule revoked.
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/permissions/history:
+    get:
+      tags: [Permissions]
+      operationId: getPermissionHistory
+      summary: Query the permission audit log.
+      description: |
+        Returns audit entries (every grant, deny, escalation) in
+        reverse-chronological order. Filter by session, workspace,
+        tenant, actor, or outcome. The in-memory store currently
+        retains the last `audit_capacity` entries; durable backends
+        (A.5) will eventually replace this with the session-store
+        event feed.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+        - in: query
+          name: session_id
+          schema: { type: string }
+        - in: query
+          name: workspace_id
+          schema: { type: string }
+        - in: query
+          name: tenant_id
+          schema: { type: string }
+        - in: query
+          name: actor
+          schema: { type: string }
+        - in: query
+          name: outcome
+          schema:
+            type: string
+            enum: [granted, denied, escalated]
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Audit entry list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditEntryList"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/permissions/check:
+    post:
+      tags: [Permissions]
+      operationId: checkPermission
+      summary: Evaluate a permission request against policy + rules.
+      description: |
+        Stateless evaluation entry-point. The store consults remember
+        rules (narrowest-scope-first), then the declared policy, then
+        the auto-deny floor. When nothing matches, returns
+        `outcome: "suspend"` with the escalation chain — the caller
+        is expected to hand the request off to the ACP
+        `session/request_permission` channel for human review.
+      parameters:
+        - $ref: "#/components/parameters/ProtocolVersion"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PermissionCheckRequest"
+      responses:
+        "200":
+          description: Decision and request id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermissionCheckResponse"
+        default:
+          $ref: "#/components/responses/Error"
+
   /v1/tasks/{task_id}/replay:
     post:
       tags: [Tasks]
@@ -920,7 +1252,12 @@ paths:
     post:
       tags: [Messages]
       operationId: appendTaskMessage
-      summary: Send input, interrupt, or tool-confirmation content to a Task.
+      summary: Steer a running Task with additional user input.
+      description: |
+        Routes text through Harn's canonical active-prompt injection seam. Use
+        the Task cancel endpoint for cancellation and the permission-response
+        endpoint for tool confirmations; those controls retain their own typed
+        audit contracts rather than being encoded as messages.
       parameters:
         - $ref: "#/components/parameters/ProtocolVersion"
         - $ref: "#/components/parameters/TaskId"
@@ -1850,6 +2187,53 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Capability"
+    ProviderCatalog:
+      type: object
+      required: [schema_version, schema, generated_by, providers, models, aliases, variants, families, qc_defaults]
+      additionalProperties: false
+      properties:
+        schema_version:
+          type: integer
+          enum: [6]
+        schema:
+          type: string
+          enum: ["https://harnlang.com/schemas/provider-catalog.v6.json"]
+        generated_by:
+          type: string
+        providers:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        models:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        aliases:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        variants:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        families:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        routing_routes:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        qc_defaults:
+          type: object
+          additionalProperties:
+            type: string
     Tool:
       type: object
       required: [id, object, name, description, input_schema, output_schema]
@@ -2133,6 +2517,8 @@ components:
                   format: uri-reference
             persona_id:
               type: [string, "null"]
+            model_policy:
+              $ref: "#/components/schemas/SessionModelPolicy"
             root_session_id:
               type: [string, "null"]
             parent_session_id:
@@ -2140,6 +2526,12 @@ components:
             branch_id:
               type: [string, "null"]
             last_event_id:
+              type: [string, "null"]
+            live_clients:
+              type: array
+              items:
+                $ref: "#/components/schemas/LiveSessionClient"
+            live_controller_id:
               type: [string, "null"]
             summary:
               type: [string, "null"]
@@ -2156,6 +2548,27 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/Session"
+    SessionModelPolicy:
+      type: object
+      additionalProperties: false
+      required: [provider, model]
+      description: |
+        Concrete default model route for a session. Explicit per-call route and
+        reasoning options take precedence, followed by this session policy,
+        persona/script policy, and ambient runtime defaults.
+      properties:
+        provider:
+          type: string
+          minLength: 1
+          description: Registered concrete provider identifier.
+        model:
+          type: string
+          minLength: 1
+          description: Provider-native model identifier.
+        reasoning_effort:
+          type: string
+          enum: [none, minimal, low, medium, high, xhigh, max]
+          description: Optional provider-portable reasoning effort.
     CreateSessionRequest:
       type: object
       required: [workspace_id]
@@ -2164,6 +2577,11 @@ components:
           type: string
         persona_id:
           type: [string, "null"]
+        model_policy:
+          oneOf:
+            - $ref: "#/components/schemas/SessionModelPolicy"
+            - type: "null"
+          description: Optional session model default. Null is equivalent to omission.
         vault_ids:
           type: array
           items:
@@ -2187,6 +2605,11 @@ components:
       properties:
         summary:
           type: [string, "null"]
+        model_policy:
+          oneOf:
+            - $ref: "#/components/schemas/SessionModelPolicy"
+            - type: "null"
+          description: Replaces the full session model policy; null clears it.
         metadata:
           $ref: "#/components/schemas/Metadata"
     ForkSessionRequest:
@@ -2234,6 +2657,96 @@ components:
           type: [string, "null"]
         session:
           $ref: "#/components/schemas/Session"
+    LiveSessionClient:
+      type: object
+      required:
+        - client_id
+        - mode
+        - attached_at
+        - last_seen_at
+        - prompt_injection
+        - permission_routing
+        - metadata
+      properties:
+        client_id:
+          type: string
+        mode:
+          type: string
+          enum: [observer, controller]
+        attached_at:
+          type: string
+          description: Runtime liveness marker for when the client first attached.
+        last_seen_at:
+          type: string
+          description: Runtime liveness marker refreshed by attach or heartbeat.
+        prompt_injection:
+          type: boolean
+        permission_routing:
+          type: boolean
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+    AttachSessionClientRequest:
+      type: object
+      required: [client_id]
+      properties:
+        client_id:
+          type: string
+        mode:
+          type: string
+          enum: [observer, controller]
+          default: observer
+        takeover:
+          type: boolean
+          default: false
+        prompt_injection:
+          type: boolean
+          description: Defaults to true for controllers and false for observers.
+        permission_routing:
+          type: boolean
+          description: Defaults to true for controllers and false for observers.
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+    SessionClientRequest:
+      type: object
+      required: [client_id]
+      properties:
+        client_id:
+          type: string
+        reason:
+          type: [string, "null"]
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+    LiveSessionClientChange:
+      type: object
+      required:
+        - client
+        - previous_controller_id
+        - active_controller_id
+        - clients
+      properties:
+        client:
+          oneOf:
+            - $ref: "#/components/schemas/LiveSessionClient"
+            - type: "null"
+        previous_controller_id:
+          type: [string, "null"]
+        active_controller_id:
+          type: [string, "null"]
+        clients:
+          type: array
+          items:
+            $ref: "#/components/schemas/LiveSessionClient"
+    LiveSessionClientList:
+      type: object
+      required: [object, data]
+      properties:
+        object:
+          type: string
+          enum: [list]
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/LiveSessionClient"
 
     Task:
       allOf:
@@ -2377,6 +2890,275 @@ components:
           type: [string, "null"]
         metadata:
           $ref: "#/components/schemas/Metadata"
+        scope:
+          type: [string, "null"]
+          enum: [session, workspace, user, always, null]
+          description: |
+            When the approver wants the verdict remembered, the scope at
+            which to apply it. Honored only when `remember` is true.
+        expires_at:
+          type: [string, "null"]
+          format: date-time
+          description: Optional auto-revoke timestamp for time-bound grants.
+        remember:
+          type: [boolean, "null"]
+          description: |
+            When true and the response approves or denies, materializes a
+            persistent rule keyed off `scope` + `action_pattern` +
+            `target_pattern`.
+        action_pattern:
+          type: [string, "null"]
+          description: Glob pattern matched against future `PermissionRequest.action`.
+        target_pattern:
+          type: [string, "null"]
+          description: Glob pattern matched against future `PermissionRequest.target`.
+        class:
+          type: [string, "null"]
+          enum: [read, write, exec, net, llm, custom, null]
+    PermissionPolicy:
+      type: object
+      description: |
+        Declared permission policy: read/write/exec globs, net host
+        allowlist, llm provider list + optional cost ceiling,
+        redaction patterns, escalation chain.
+      properties:
+        read:
+          type: array
+          items: { type: string }
+        write:
+          type: array
+          items: { type: string }
+        exec:
+          type: array
+          items: { type: string }
+        net:
+          type: array
+          items: { type: string }
+        llm:
+          type: object
+          properties:
+            providers:
+              type: array
+              items: { type: string }
+              uniqueItems: true
+            cost_ceiling_usd_cents:
+              type: [integer, "null"]
+              minimum: 0
+        redact:
+          type: object
+          properties:
+            transcript:
+              type: array
+              items: { type: string }
+            logs:
+              type: array
+              items: { type: string }
+        escalate_to:
+          type: array
+          items: { type: string }
+          description: |
+            Free-form identifiers tried in order (persona URI, the
+            literal `user`, group name). The first online escalator
+            receives the request.
+    PermissionPolicyResponse:
+      type: object
+      required: [object, version, policy]
+      properties:
+        object:
+          type: string
+          enum: [permission_policy]
+        version:
+          type: string
+          description: Content-hashed policy version.
+        policy:
+          $ref: "#/components/schemas/PermissionPolicy"
+    RememberRule:
+      type: object
+      required:
+        - id
+        - scope
+        - class
+        - action_pattern
+        - target_pattern
+        - allow
+        - created_at
+        - created_by
+      properties:
+        id:
+          type: string
+          description: UUIDv7-prefixed rule identifier.
+        tenant_id:
+          type: [string, "null"]
+        scope:
+          type: string
+          enum: [session, workspace, user, always]
+        scope_value:
+          type: [string, "null"]
+          description: Session id, workspace id, or actor, depending on scope.
+        class:
+          type: string
+          enum: [read, write, exec, net, llm, custom]
+        action_pattern:
+          type: string
+        target_pattern:
+          type: string
+        allow:
+          type: boolean
+        reason:
+          type: [string, "null"]
+        created_at:
+          type: string
+          format: date-time
+        created_by:
+          type: string
+        expires_at:
+          type: [string, "null"]
+          format: date-time
+        revoked_at:
+          type: [string, "null"]
+          format: date-time
+    RememberRuleList:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedList"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/RememberRule"
+    PermissionCheckRequest:
+      type: object
+      required: [session_id, actor, class, action, target]
+      properties:
+        id:
+          type: [string, "null"]
+        tenant_id:
+          type: [string, "null"]
+        session_id:
+          type: string
+        workspace_id:
+          type: [string, "null"]
+        actor:
+          type: string
+        class:
+          type: string
+          enum: [read, write, exec, net, llm, custom]
+        action:
+          type: string
+        target:
+          type: string
+        risk:
+          type: [string, "null"]
+          enum: [low, medium, high, critical, null]
+        context:
+          type: object
+          additionalProperties: true
+        reason:
+          type: [string, "null"]
+        requested_at:
+          type: string
+          format: date-time
+    PermissionCheckResponse:
+      type: object
+      required: [object, request_id, decision]
+      properties:
+        object:
+          type: string
+          enum: [permission_decision]
+        request_id:
+          type: string
+        decision:
+          oneOf:
+            - $ref: "#/components/schemas/PermissionDecisionGranted"
+            - $ref: "#/components/schemas/PermissionDecisionDenied"
+            - $ref: "#/components/schemas/PermissionDecisionSuspend"
+    PermissionDecisionGranted:
+      type: object
+      required: [outcome, scope, policy_version]
+      properties:
+        outcome:
+          type: string
+          enum: [granted]
+        scope:
+          type: string
+          enum: [session, workspace, user, always]
+        policy_version:
+          type: string
+        reason:
+          type: [string, "null"]
+        expires_at:
+          type: [string, "null"]
+          format: date-time
+        rule_id:
+          type: [string, "null"]
+    PermissionDecisionDenied:
+      type: object
+      required: [outcome, scope, policy_version]
+      properties:
+        outcome:
+          type: string
+          enum: [denied]
+        scope:
+          type: string
+          enum: [session, workspace, user, always]
+        policy_version:
+          type: string
+        reason:
+          type: [string, "null"]
+        rule_id:
+          type: [string, "null"]
+    PermissionDecisionSuspend:
+      type: object
+      required: [outcome, policy_version, escalate_to]
+      properties:
+        outcome:
+          type: string
+          enum: [suspend]
+        policy_version:
+          type: string
+        escalate_to:
+          type: array
+          items: { type: string }
+        reason:
+          type: [string, "null"]
+    AuditEntry:
+      type: object
+      required: [request, outcome, policy_version, risk, decided_at]
+      properties:
+        request:
+          $ref: "#/components/schemas/PermissionCheckRequest"
+        outcome:
+          type: string
+          enum: [granted, denied, escalated]
+        scope:
+          type: [string, "null"]
+          enum: [session, workspace, user, always, null]
+        policy_version:
+          type: string
+        risk:
+          type: string
+          enum: [low, medium, high, critical]
+        rule_id:
+          type: [string, "null"]
+        reason:
+          type: [string, "null"]
+        expires_at:
+          type: [string, "null"]
+          format: date-time
+        decided_at:
+          type: string
+          format: date-time
+        decided_by:
+          type: [string, "null"]
+    AuditEntryList:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedList"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/AuditEntry"
     ReplayMode:
       type: string
       enum: [exact, with_overrides, from_checkpoint]
@@ -2582,7 +3364,7 @@ components:
       properties:
         kind:
           type: string
-          enum: [input, interrupt, tool_confirmation]
+          enum: [input]
         message:
           $ref: "#/components/schemas/MessageInput"
     Part:

@@ -10,6 +10,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./protocol": {
+      "types": "./dist/protocol.d.ts",
+      "import": "./dist/protocol.js"
     }
   },
   "files": [
@@ -20,9 +24,13 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "check:built-package": "node scripts/check-built-package.mjs",
     "check:examples": "tsc -p tsconfig.examples.json",
     "check:tests": "tsc -p tsconfig.test.json",
+    "example:express": "tsx examples/express-provider-catalog.ts",
+    "check:protocol": "node scripts/check-protocol-artifact.mjs",
     "generate:types": "openapi-typescript spec/openapi.yaml -o src/generated/openapi.ts",
+    "normalize:protocol": "node scripts/normalize-protocol-artifact.mjs",
     "pack:dry-run": "npm pack --dry-run",
     "prepack": "pnpm build",
     "publish:alpha": "npm publish --access public --tag alpha",
@@ -46,10 +54,15 @@
     "node": ">=22.12.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "^26.2.0",
+    "@types/supertest": "^7.2.1",
+    "express": "^5.2.1",
     "openapi-typescript": "^7.13.0",
     "tsx": "^4.23.12",
+    "supertest": "^7.2.2",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "yaml": "^2.9.0"
   }
 }

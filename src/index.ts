@@ -1,4 +1,5 @@
 export { HarnClient, HARN_PROTOCOL_VERSION } from "./client.js";
+export { createHarnProtocolClient, HARN_PROTOCOL_HEADERS } from "./protocol-client.js";
 export { HarnApiError } from "./errors.js";
 export {
   apiKeyAuth,
@@ -29,6 +30,9 @@ export {
   toolCallPart,
   toolResultPart,
 } from "./tools.js";
+export type {
+  HarnProtocolClientOptions,
+} from "./protocol-client.js";
 export type {
   AuthProvider,
   HarnAuthContext,
