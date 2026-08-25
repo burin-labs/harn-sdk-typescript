@@ -32,7 +32,7 @@ export function createHarnProtocolClient(options: HarnProtocolClientOptions = {}
 
   const config: Config = {
     baseUrl: baseUrl.toString().replace(/\/$/, ""),
-    headers: mergeProtocolHeaders(options.headers),
+    headers: options.headers,
   };
   if (options.accessToken !== undefined) {
     config.auth = options.accessToken;
@@ -40,11 +40,15 @@ export function createHarnProtocolClient(options: HarnProtocolClientOptions = {}
   if (options.fetch !== undefined) {
     config.fetch = options.fetch;
   }
-  return createClient(config);
-}
-
-function mergeProtocolHeaders(headers: HeadersInit | undefined): Headers {
-  const merged = new Headers(headers);
-  merged.set("Harn-Agents-Protocol-Version", HARN_PROTOCOL_VERSION);
-  return merged;
+  const client = createClient(config);
+  client.interceptors.request.use((request, requestOptions) => {
+    if (requestOptions.security?.length) {
+      request.headers.set("Harn-Agents-Protocol-Version", HARN_PROTOCOL_VERSION);
+    } else {
+      request.headers.delete("Authorization");
+      request.headers.delete("Harn-Agents-Protocol-Version");
+    }
+    return request;
+  });
+  return client;
 }
