@@ -16,7 +16,9 @@ cd harn-sdk-typescript
 pnpm install --frozen-lockfile
 ```
 
-The [publishing guide](docs/PUBLISHING.md) covers the first public npm release.
+The [publishing guide](docs/PUBLISHING.md) covers the first public npm release,
+and [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, the checks to run, and
+which files are generated.
 
 ## Quickstart
 
