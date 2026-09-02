@@ -1,3 +1,9 @@
+<!--
+Title this pull request `[Area] Sentence case description`.
+Areas: Client, Protocol, Examples, Docs, CI, Tests, Release.
+Example: [Client] Pin the bearer token to the base URL host
+-->
+
 ## Description
 
 <!--
