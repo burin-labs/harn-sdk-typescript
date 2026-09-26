@@ -1,4 +1,5 @@
 version: 2
+
 # This file is the source projected into repositories that use GitHub Actions.
 # Cooldown gives a compromised release time to be yanked or flagged before an
 # automated PR proposes it.
