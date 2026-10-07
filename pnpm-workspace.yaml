@@ -16,6 +16,9 @@ overrides:
   # Security floor. vitest already resolves vite above this, but the override
   # keeps a transitive downgrade from reintroducing a vulnerable vite.
   vite: ">=8.0.16"
+  # Security floor (GHSA-68fv-2mgg-jv7q). postcss accepts ^1.2.1, and pnpm
+  # keeps an already-locked 1.2.1 on `pnpm update`, so the floor moves it.
+  source-map-js: ">=1.2.2 <2"
 
 peerDependencyRules:
   allowedVersions:
