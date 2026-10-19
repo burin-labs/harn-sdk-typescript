@@ -1,0 +1,213 @@
+import { VersionPublication, publish_version } from "./publish"
+
+const BASE = "https://api.github.test"
+
+const BRANCH = "release/v0.1.0-alpha.1"
+
+const COMMIT = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+
+type Local = {fs: HarnessFs, process: HarnessProcess}
+
+fn git(local: {process: HarnessProcess}, dir: string, args: list<string>) -> string {
+  const result = local.process.run(
+    {program: "git", args: args, cwd: dir, env: {}, stdin: "", timeout_ms: 10000},
+  )
+  if !result.success {
+    throw "fixture git failed: " + to_string(result.stderr)
+  }
+  return trim(to_string(result.stdout))
+}
+
+fn fixture(local: Local) -> VersionPublication {
+  const dir = local.fs.mkdtemp_in_workspace("sdk-version-publication-")
+  git(local, dir, ["init", "-q", "-b", "main"])
+  git(local, dir, ["config", "user.name", "SDK fixture"])
+  git(local, dir, ["config", "user.email", "sdk@example.test"])
+  git(local, dir, ["config", "commit.gpgsign", "false"])
+  git(local, dir, ["config", "gc.auto", "0"])
+  git(local, dir, ["config", "maintenance.auto", "false"])
+  local.fs.write_text(dir + "/package.json", "old package\n")
+  local.fs.write_text(dir + "/other.txt", "old\n")
+  git(local, dir, ["add", "-A"])
+  git(local, dir, ["commit", "-qm", "base"])
+  const oid = git(local, dir, ["rev-parse", "HEAD"])
+  local.fs.write_text(dir + "/package.json", "selected package\n")
+  git(local, dir, ["add", "--", "package.json"])
+  local.fs.write_text(dir + "/package.json", "unselected later edit\n")
+  local.fs.write_text(dir + "/other.txt", "unselected other file\n")
+  return {
+    owner: "octo-org",
+    repo: "octo-repo",
+    branch: BRANCH,
+    headline: "Release version",
+    repo_dir: dir,
+    base_oid: oid,
+  }
+}
+
+fn answer(testing: HarnessTesting, request: VersionPublication, stale: bool, signed: bool) {
+  testing.http_mock_clear()
+  testing.http_mock(
+    "GET",
+    BASE + "/repos/octo-org/octo-repo/git/ref/heads/" + BRANCH,
+    {
+      status: 200,
+      body: json_stringify(
+        {
+          ref: "refs/heads/" + BRANCH,
+          object: {
+            sha: if stale {
+              COMMIT
+            } else {
+              request.base_oid
+            },
+            type: "commit",
+          },
+        },
+      ),
+    },
+  )
+  testing.http_mock(
+    "POST",
+    BASE + "/graphql",
+    {
+      status: 200,
+      body: json_stringify(
+        {
+          data: {
+            createCommitOnBranch: {
+              commit: {
+                oid: COMMIT,
+                url: "https://github.com/octo-org/octo-repo/commit/" + COMMIT,
+                signature: {
+                  isValid: signed,
+                  wasSignedByGitHub: signed,
+                  state: if signed {
+                    "VALID"
+                  } else {
+                    "UNSIGNED"
+                  },
+                },
+              },
+              ref: {name: BRANCH, target: {oid: COMMIT}},
+            },
+          },
+        },
+      ),
+    },
+  )
+}
+
+fn state(local: Local, dir: string) -> string {
+  return git(local, dir, ["status", "--porcelain=v1"]) + git(local, dir, ["ls-files", "-s"])
+    + git(local, dir, ["rev-parse", "HEAD"])
+    + local.fs.read_text(dir + "/package.json")
+}
+
+fn drop(local: Local, dir: string) {
+  if !starts_with(path_basename(dir), "sdk-version-publication-") {
+    throw "owning fixture cleanup only"
+  }
+  const result = local.process.run(
+    {
+      program: "rm",
+      args: ["-rf", "--", path_basename(dir)],
+      cwd: local.fs.workspace_temp_dir(),
+      env: {},
+      stdin: "",
+      timeout_ms: 10000,
+    },
+  )
+  if !result.success {
+    throw "fixture cleanup failed"
+  }
+}
+
+pipeline test_selected_package_is_exact_signed_payload(harness: Harness, task: any) {
+  const local = pick(harness, ["fs", "process"])
+  const request = fixture(local)
+  const before = state(local, request.repo_dir)
+  answer(harness.testing, request, false, true)
+  const receipt = unwrap(
+    publish_version(harness, request, {api_base_url: BASE, installation_token: "fixture-token"}),
+  )
+  assert_eq(receipt.committed, true)
+  assert_eq(receipt.commit_oid, COMMIT)
+  assert_eq(len(receipt.changes), 1)
+  assert_eq(
+    receipt.changes[0].blob_oid,
+    git(local, request.repo_dir, ["rev-parse", ":package.json"]),
+  )
+  const calls = harness.testing.http_mock_calls()
+  assert_eq(len(calls), 2)
+  const payload: {
+    variables: {
+      input: {
+        expectedHeadOid: string,
+        fileChanges: {additions: list<{path: string, contents: string}>},
+      },
+    },
+  } = json_parse(to_string(calls[1].body))
+  assert_eq(payload.variables.input.expectedHeadOid, request.base_oid)
+  const additions = payload.variables.input.fileChanges.additions
+  assert_eq(len(additions), 1)
+  const addition = additions[0]
+  if addition == nil {
+    throw "missing selected addition"
+  }
+  assert_eq(addition.path, "package.json")
+  assert_eq(addition.contents, base64_encode("selected package\n"))
+  assert_eq(state(local, request.repo_dir), before)
+  drop(local, request.repo_dir)
+}
+
+pipeline test_stale_head_and_invalid_signature_stop_before_pr(harness: Harness, task: any) {
+  const local = pick(harness, ["fs", "process"])
+  const request = fixture(local)
+  const before = state(local, request.repo_dir)
+  answer(harness.testing, request, true, true)
+  assert(
+    is_err(
+      publish_version(harness, request, {api_base_url: BASE, installation_token: "fixture-token"}),
+    ),
+  )
+  assert_eq(len(harness.testing.http_mock_calls()), 1)
+  answer(harness.testing, request, false, false)
+  assert(
+    is_err(
+      publish_version(harness, request, {api_base_url: BASE, installation_token: "fixture-token"}),
+    ),
+  )
+  assert_eq(len(harness.testing.http_mock_calls()), 2)
+  assert_eq(state(local, request.repo_dir), before)
+  drop(local, request.repo_dir)
+}
+
+pipeline test_unsupported_and_unrelated_selection_make_no_requests(harness: Harness, task: any) {
+  const local = pick(harness, ["fs", "process"])
+  const request = fixture(local)
+  answer(harness.testing, request, false, true)
+  git(local, request.repo_dir, ["update-index", "--chmod=+x", "package.json"])
+  assert(
+    is_err(
+      publish_version(harness, request, {api_base_url: BASE, installation_token: "fixture-token"}),
+    ),
+  )
+  assert_eq(len(harness.testing.http_mock_calls()), 0)
+  git(local, request.repo_dir, ["update-index", "--chmod=-x", "package.json"])
+  git(local, request.repo_dir, ["add", "--", "other.txt"])
+  assert(
+    is_err(
+      publish_version(harness, request, {api_base_url: BASE, installation_token: "fixture-token"}),
+    ),
+  )
+  assert_eq(len(harness.testing.http_mock_calls()), 0)
+  git(local, request.repo_dir, ["reset", "-q", "HEAD", "--", "."])
+  assert(
+    is_err(
+      publish_version(harness, request, {api_base_url: BASE, installation_token: "fixture-token"}),
+    ),
+  )
+  assert_eq(len(harness.testing.http_mock_calls()), 0, "measured empty selection refuses")
+  drop(local, request.repo_dir)
+}

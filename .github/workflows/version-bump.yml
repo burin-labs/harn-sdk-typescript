@@ -51,6 +51,13 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Install signed publication runtime
+        uses: burin-labs/harn/.github/actions/setup-harn@c9a72eda6b8e015481089c5a5b8ea4511e4ce5d3
+        with:
+          version-file: scripts/signed-commit/.harn-version
+      - name: Install locked released GitHub adapter
+        working-directory: scripts/signed-commit
+        run: harn install --locked
       - name: Bump package version
         id: bump
         shell: bash
@@ -83,40 +90,21 @@ jobs:
           set -euo pipefail
           VERSION="${{ steps.bump.outputs.version }}"
           BRANCH="release/v${VERSION}"
-          # Use createCommitOnBranch so the release commit lands signed by
-          # GitHub (the org-level required_signatures rule on `main` would
-          # otherwise block auto-merge on the resulting PR).
           BASE_SHA="$(git rev-parse HEAD)"
-
-          if gh api "repos/${REPO}/git/refs/heads/${BRANCH}" >/dev/null 2>&1; then
-            gh api -X PATCH "repos/${REPO}/git/refs/heads/${BRANCH}" \
-              -f sha="${BASE_SHA}" -F force=true >/dev/null
-          else
-            gh api -X POST "repos/${REPO}/git/refs" \
-              -f ref="refs/heads/${BRANCH}" -f sha="${BASE_SHA}" >/dev/null
-          fi
-
-          PACKAGE_B64="$(base64 -w0 < package.json)"
-          REQ_FILE="$(mktemp)"
+          git add -- package.json
+          REQUEST="${RUNNER_TEMP}/sdk-version-publication.json"
           jq -n \
-            --arg repo "${REPO}" \
+            --arg owner "${REPO%%/*}" \
+            --arg repo "${REPO#*/}" \
             --arg branch "${BRANCH}" \
             --arg headline "chore: release v${VERSION}" \
-            --arg oid "${BASE_SHA}" \
-            --arg pkg "${PACKAGE_B64}" \
-            '{
-              query: "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid url } } }",
-              variables: {
-                input: {
-                  branch: {repositoryNameWithOwner: $repo, branchName: $branch},
-                  message: {headline: $headline},
-                  fileChanges: {additions: [{path: "package.json", contents: $pkg}]},
-                  expectedHeadOid: $oid
-                }
-              }
-            }' > "${REQ_FILE}"
-
-          gh api graphql --input "${REQ_FILE}" >/dev/null
+            --arg base_oid "${BASE_SHA}" \
+            --arg repo_dir "${GITHUB_WORKSPACE}" \
+            '{owner:$owner,repo:$repo,branch:$branch,headline:$headline,base_oid:$base_oid,repo_dir:$repo_dir}' > "${REQUEST}"
+          # The released adapter derives package.json from the selected index,
+          # refuses moved heads and unsupported modes, and verifies the signature.
+          # A refusal exits before any pull request creation.
+          harn run --no-sandbox scripts/signed-commit/publish.harn -- "${REQUEST}"
 
           gh pr create \
             --base main \
