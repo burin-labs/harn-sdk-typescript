@@ -61,6 +61,12 @@ Trusted publishing uses OIDC, so routine releases do not need long-lived npm tok
 3. Run the `Create Release Tag` workflow with the merged version, for example `0.1.0-alpha.1`.
 4. The pushed `vX.Y.Z` tag triggers `Publish to npm`.
 
+The version workflow stages only `package.json` and publishes that index through
+the locked released GitHub worktree adapter. A moved release branch, an invalid
+GitHub signature, or an unsupported file mode stops the job before it opens a
+pull request. An existing release branch is never force-reset; inspect and
+resolve an earlier attempt before rerunning the same version.
+
 The publish workflow derives the npm dist-tag from the package version:
 
 - Stable versions publish as `latest`.

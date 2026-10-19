@@ -1,0 +1,78 @@
+import {
+  GithubClientOptions,
+  GithubConnectorResult,
+  GithubWorktreeCommitReceipt,
+  github_commit_worktree,
+  github_worktree_delta,
+} from "harn-github-connector/worktree"
+
+pub type VersionPublication = {
+  owner: string,
+  repo: string,
+  branch: string,
+  headline: string,
+  repo_dir: string,
+  base_oid: string,
+}
+
+/** Publish exactly the staged package metadata, never reset a moved release branch. */
+pub fn publish_version(
+  harness: Harness,
+  request: VersionPublication,
+  options: GithubClientOptions,
+) -> GithubConnectorResult<GithubWorktreeCommitReceipt> {
+  const delta = github_worktree_delta(
+    harness.process,
+    {repo_dir: request.repo_dir, source: "index", base_oid: request.base_oid},
+  )
+  if is_err(delta) {
+    return Err(unwrap_err(delta))
+  }
+  const selected = unwrap(delta)
+  if len(selected.changes) != 1 || selected.changes[0]?.path != "package.json"
+    || selected.changes[0]?.status != "modified" {
+    return Err(
+      {
+        code: "invalid_version_selection",
+        category: "validation",
+        message: "version publication requires exactly modified package.json in the selected index",
+      },
+    )
+  }
+  return github_commit_worktree(
+    harness,
+    {
+      owner: request.owner,
+      repo: request.repo,
+      branch: request.branch,
+      headline: request.headline,
+      repo_dir: request.repo_dir,
+      source: "index",
+      base_oid: request.base_oid,
+      create_branch: true,
+      reset_branch: false,
+      options: options,
+    },
+  )
+}
+
+fn main(harness: Harness) {
+  if len(argv) != 1 {
+    throw "version publication requires one request metadata file"
+  }
+  const request = schema_expect(
+    json_parse(harness.fs.read_text(argv[0])),
+    schema_of(VersionPublication),
+  )
+  const token = trim(harness.env.get("GH_TOKEN") ?? "")
+  if token == "" {
+    throw "version publication requires GH_TOKEN"
+  }
+  const result = publish_version(harness, request, {installation_token: token})
+  if is_err(result) {
+    const failure = unwrap_err(result)
+    harness.stdio.eprintln("version publication refused [${failure.code}]: ${failure.message}")
+    harness.runtime.exit(1)
+  }
+  harness.stdio.println(json_stringify(unwrap(result)))
+}

@@ -36,6 +36,16 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Install signed publication runtime
+        uses: burin-labs/harn/.github/actions/setup-harn@c9a72eda6b8e015481089c5a5b8ea4511e4ce5d3
+        with:
+          version-file: scripts/signed-commit/.harn-version
+      - name: Verify released signed publication adapter
+        working-directory: scripts/signed-commit
+        run: |
+          harn install --locked
+          harn check publish.harn publish_test.harn
+          harn test publish_test.harn
       - run: pnpm check:protocol
       - run: pnpm typecheck
       - run: pnpm check:examples
