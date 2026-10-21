@@ -36,6 +36,9 @@ pnpm pack:dry-run     # what npm would actually publish
 The examples import the package the way a consumer does, so a change that
 breaks the public type surface fails there while `pnpm typecheck` stays green.
 
+For faster local feedback on Apple Silicon or Linux, use the opt-in
+[tsrs type checks](docs/TSRS.md). Run the checks above before submitting a PR.
+
 ## Generated types are not editable
 
 `src/generated/openapi.ts` is generated from the vendored OpenAPI contract in
