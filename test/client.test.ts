@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HarnClient } from "../src/index.js";
+import { HarnApiError, HarnClient, textPart } from "../src/index.js";
 
 describe("HarnClient", () => {
   it("sends auth, protocol version, query params, and idempotency headers", async () => {
@@ -22,6 +22,61 @@ describe("HarnClient", () => {
     expect(calls[0]?.url).toBe("https://example.test/v1/sessions/session%2F1/tasks");
     expect(new Headers(calls[0]?.init.headers).get("Content-Type")).toBe("application/json");
     expect(calls[0]?.init.body).toBe(JSON.stringify({ input: { prompt: "hello" } }));
+  });
+
+  it("preserves assistant message resources, ordered parts, and caller metadata", async () => {
+    const body = {
+      message: {
+        role: "assistant" as const,
+        parts: [
+          textPart("[Caller-supplied report]\n"),
+          textPart("  4 passed — reported, not run here.\n"),
+        ],
+        metadata: {
+          assistant_origin: { kind: "caller_supplied", source: "imported test report" },
+          opaque: { ordered: [2, 1], unrecognized: true },
+        },
+      },
+    };
+    const resource = { id: "msg_1", object: "message", ...body.message, server_extension: [3, 2, 1] };
+    const { calls, client } = recordingClient(resource);
+
+    expect(await client.appendSessionMessage("session/1", body)).toEqual(resource);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.url).toBe("https://example.test/v1/sessions/session%2F1/messages");
+    // Omitting run uses store-only behavior without extending the public type.
+    expect(JSON.parse(String(calls[0]?.init.body))).toEqual(body);
+  });
+
+  it("preserves an assistant execution refusal without fallback or role conversion", async () => {
+    const body = { input: {
+      role: "assistant" as const,
+      parts: [textPart("[Caller-supplied report]\n4 passed — reported, not run here.")],
+      metadata: { assistant_origin: { kind: "caller_supplied", source: "imported test report" } },
+    } };
+    // Simulated server refusal: this does not prove a deployed actor capability.
+    const errorBody = { error: {
+      code: "unsupported_execution_input_role",
+      message: "runtime execution requires user-role input",
+      type: "invalid_request_error",
+      param: "input.role",
+      details: { role: "assistant" },
+    } };
+    const calls: { url: string; init: RequestInit }[] = [];
+    const client = new HarnClient({ baseUrl: "https://example.test", fetch: async (url, init = {}) => {
+      calls.push({ url: String(url), init });
+      return Response.json(errorBody, { status: 400 });
+    } });
+
+    const error = await client.submitSessionTask("session/1", body).catch((cause: unknown) => cause);
+    expect(error).toBeInstanceOf(HarnApiError);
+    if (!(error instanceof HarnApiError)) throw new Error("expected a server API error");
+    expect(error.status).toBe(400);
+    expect(error.message).toBe(errorBody.error.message);
+    expect(error.error).toEqual(errorBody.error);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.url).toBe("https://example.test/v1/sessions/session%2F1/tasks");
+    expect(JSON.parse(String(calls[0]?.init.body))).toEqual(body);
   });
 
   it("throws structured API errors", async () => {

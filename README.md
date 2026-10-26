@@ -43,6 +43,35 @@ for await (const event of client.streamTaskEvents(task.id)) {
 }
 ```
 
+## Store caller-supplied assistant messages
+
+Use the existing message resource endpoint to archive caller-supplied text:
+
+```ts
+const message = await client.appendSessionMessage("session_123", {
+  message: {
+    role: "assistant",
+    parts: [textPart("[Caller-supplied report]\n4 tests passed, according to an imported report.")],
+    metadata: {
+      assistant_origin: { kind: "caller_supplied", source: "imported test report" },
+    },
+  },
+});
+```
+
+The existing request type uses the server's default store-only behavior
+(`run: false`). The client preserves the role, part order, and open metadata.
+The source label is a caller assertion; it does not prove test execution,
+model authorship, or authorization.
+
+Storing a message resource does not adopt it into the runtime actor's model
+history, start a task, or establish assistant prefill support. The standalone
+API's message resources are process-local; do not rely on them surviving a
+restart. Runtime history import and provider continuation need their own
+supported interfaces. Use user-role task input as in the quickstart to request
+execution. Servers can reject assistant-role execution or steering; the SDK
+returns that error without rewriting the role or retrying as user input.
+
 ## Add Harn to an existing app
 
 The generated protocol client exposes all 85 operations from Harn v0.10.116.
