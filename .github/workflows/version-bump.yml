@@ -46,13 +46,13 @@ jobs:
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           version: 10.31.0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Install signed publication runtime
-        uses: burin-labs/harn/.github/actions/setup-harn@c9a72eda6b8e015481089c5a5b8ea4511e4ce5d3
+        uses: burin-labs/harn/.github/actions/setup-harn@fb7275fa91979fd332edfcc7fdd5e70ce3026c2d
         with:
           version-file: scripts/signed-commit/.harn-version
       - name: Install locked released GitHub adapter
