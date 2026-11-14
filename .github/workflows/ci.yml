@@ -48,10 +48,10 @@ jobs:
           harn test publish_test.harn
       - run: pnpm check:protocol
       - run: pnpm typecheck
+      - run: pnpm build
       - run: pnpm check:examples
       - run: pnpm check:tests
       - run: pnpm test
-      - run: pnpm build
       - run: pnpm check:built-package
       - run: pnpm check:generated-package
       - run: pnpm pack:dry-run
