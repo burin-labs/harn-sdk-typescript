@@ -1,0 +1,439 @@
+{
+  "schema_version": "harn-codegen-artifacts/1.0",
+  "identity": {
+    "catalog_digest": "sha256:ec659b3280b28eb139da42348e1a690e4dc6803e0182fb83a50b206325fdc0e0",
+    "binding_digest": "sha256:c7dfc42da1cfdce308946a50388bcc89239c9c67cd2bed30d1b91fbce79bcb6e",
+    "ir_digest": "sha256:ad88b70fca7ae0717cceda64104390a785c25dc8bc09c001f3d3a2452e33348c"
+  },
+  "role": "both",
+  "files": [
+    {
+      "path": "client.ts",
+      "sha256": "sha256:cbe6f85ba9940806eea4405d56fb483aca4b5d12af40f3effd6d1032b96d8b19",
+      "source_mappings": [
+        {
+          "start": 352,
+          "end": 521,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/server.harn",
+            "start": 137,
+            "end": 190
+          }
+        },
+        {
+          "start": 521,
+          "end": 694,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/server.harn",
+            "start": 344,
+            "end": 399
+          }
+        },
+        {
+          "start": 694,
+          "end": 899,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/server.harn",
+            "start": 451,
+            "end": 543
+          }
+        },
+        {
+          "start": 899,
+          "end": 1078,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/server.harn",
+            "start": 639,
+            "end": 697
+          }
+        }
+      ]
+    },
+    {
+      "path": "contract.ts",
+      "sha256": "sha256:8244847b5df1ba1153db955259c324b933739ce64c7eaf6b5a6d9ef3adaa0635",
+      "source_mappings": []
+    },
+    {
+      "path": "index.ts",
+      "sha256": "sha256:27e481f8b05eec8e641271420cee7344670fb885694f0d3d3e05479731615a54",
+      "source_mappings": []
+    },
+    {
+      "path": "server.ts",
+      "sha256": "sha256:1989564625974874d0d566c2f7180ecce8489a800cd752d3791625a2aef8e69e",
+      "source_mappings": [
+        {
+          "start": 325,
+          "end": 375,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/server.harn",
+            "start": 137,
+            "end": 190
+          }
+        },
+        {
+          "start": 375,
+          "end": 427,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/server.harn",
+            "start": 344,
+            "end": 399
+          }
+        },
+        {
+          "start": 427,
+          "end": 511,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/server.harn",
+            "start": 451,
+            "end": 543
+          }
+        },
+        {
+          "start": 511,
+          "end": 566,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/server.harn",
+            "start": 639,
+            "end": 697
+          }
+        }
+      ]
+    },
+    {
+      "path": "types.ts",
+      "sha256": "sha256:67fbb8ed2fcbd399ba498519d2f720877caa7c2348da71255d2c6a3898429c85",
+      "source_mappings": [
+        {
+          "start": 103,
+          "end": 153,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 425,
+            "end": 449
+          }
+        },
+        {
+          "start": 153,
+          "end": 225,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 227,
+            "end": 297
+          }
+        },
+        {
+          "start": 225,
+          "end": 281,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/server.harn",
+            "start": 0,
+            "end": 698
+          }
+        },
+        {
+          "start": 281,
+          "end": 370,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 179,
+            "end": 221
+          }
+        },
+        {
+          "start": 370,
+          "end": 398,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 355,
+            "end": 370
+          }
+        },
+        {
+          "start": 398,
+          "end": 463,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/left.harn",
+            "start": 0,
+            "end": 33
+          }
+        },
+        {
+          "start": 463,
+          "end": 1039,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 303,
+            "end": 682
+          }
+        },
+        {
+          "start": 1039,
+          "end": 1086,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 404,
+            "end": 422
+          }
+        },
+        {
+          "start": 1086,
+          "end": 1121,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 386,
+            "end": 401
+          }
+        },
+        {
+          "start": 1121,
+          "end": 1219,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 227,
+            "end": 297
+          }
+        },
+        {
+          "start": 1219,
+          "end": 1283,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/left.harn",
+            "start": 39,
+            "end": 71
+          }
+        },
+        {
+          "start": 1283,
+          "end": 1496,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 120,
+            "end": 173
+          }
+        },
+        {
+          "start": 1496,
+          "end": 1533,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 227,
+            "end": 297
+          }
+        },
+        {
+          "start": 1533,
+          "end": 1564,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 425,
+            "end": 449
+          }
+        },
+        {
+          "start": 1564,
+          "end": 1624,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 479,
+            "end": 511
+          }
+        },
+        {
+          "start": 1624,
+          "end": 1665,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 322,
+            "end": 336
+          }
+        },
+        {
+          "start": 1665,
+          "end": 1708,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 179,
+            "end": 221
+          }
+        },
+        {
+          "start": 1708,
+          "end": 1740,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 373,
+            "end": 383
+          }
+        },
+        {
+          "start": 1740,
+          "end": 1805,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/right.harn",
+            "start": 36,
+            "end": 69
+          }
+        },
+        {
+          "start": 1805,
+          "end": 1840,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 242,
+            "end": 254
+          }
+        },
+        {
+          "start": 1840,
+          "end": 1939,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 67,
+            "end": 114
+          }
+        },
+        {
+          "start": 1939,
+          "end": 1987,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 452,
+            "end": 476
+          }
+        },
+        {
+          "start": 1987,
+          "end": 2029,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 633,
+            "end": 650
+          }
+        },
+        {
+          "start": 2029,
+          "end": 2054,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 97,
+            "end": 112
+          }
+        },
+        {
+          "start": 2054,
+          "end": 2173,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 688,
+            "end": 731
+          }
+        },
+        {
+          "start": 2173,
+          "end": 2210,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 270,
+            "end": 283
+          }
+        },
+        {
+          "start": 2210,
+          "end": 2276,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/right.harn",
+            "start": 0,
+            "end": 30
+          }
+        },
+        {
+          "start": 2276,
+          "end": 2343,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 425,
+            "end": 449
+          }
+        },
+        {
+          "start": 2343,
+          "end": 2373,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 339,
+            "end": 352
+          }
+        },
+        {
+          "start": 2373,
+          "end": 2469,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 227,
+            "end": 297
+          }
+        },
+        {
+          "start": 2469,
+          "end": 2498,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 404,
+            "end": 422
+          }
+        },
+        {
+          "start": 2498,
+          "end": 2554,
+          "source": {
+            "kind": "text_span",
+            "document": "harn:source/types.harn",
+            "start": 97,
+            "end": 112
+          }
+        }
+      ]
+    }
+  ]
+}

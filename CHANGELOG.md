@@ -7,6 +7,15 @@ All notable changes to `@burin-labs/harn` are tracked here. The format follows
 
 ### Added
 
+- Generate typed clients and native MCP handlers from Harn's validated wire
+  contract with `harn-typescript-codegen`. Generated bindings preserve full-width
+  integers, bytes, decimal scale, structural sets, recursive and nominal types,
+  declared failures, task completion, and request cancellation.
+- Serve generated native handlers through the official MCP SDK and attach them
+  to Harn's CLI, MCP server, and agent tool registry with an independently
+  verified contract. Packed-consumer checks exercise actual Harn generation,
+  HTTP calls, Express, and native workers.
+
 - Added the release-generated Harn v0.10.116 protocol client and types at
   `@burin-labs/harn/protocol`, covering all 85 OpenAPI operations. The
   `createHarnProtocolClient` factory supplies the protocol header, validates
@@ -16,6 +25,10 @@ All notable changes to `@burin-labs/harn` are tracked here. The format follows
   adoption in an existing application.
 
 ### Changed
+
+- Replace the schema-free `defineTool` and `runTool` helpers with generated exact
+  handler maps and clients. Existing message and approval helpers remain
+  available. See [Generate typed Harn bindings](docs/CODEGEN.md).
 
 - Updated `spec/openapi.yaml` and its compatibility type projection from 72 to
   85 operations. The generated protocol module now owns operation coverage;

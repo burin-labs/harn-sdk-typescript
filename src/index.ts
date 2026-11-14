@@ -1,6 +1,11 @@
 export { HarnClient, HARN_PROTOCOL_VERSION } from "./client.js";
 export { createHarnProtocolClient, HARN_PROTOCOL_HEADERS } from "./protocol-client.js";
 export { HarnApiError } from "./errors.js";
+export { HarnMcpError } from "./mcp-rpc.js";
+export { HarnDecimal } from "./decimal.js";
+export { ApplicationFailure } from "./bindings.js";
+export type { Handler, HandlerContext, ExactHandlers } from "./bindings.js";
+export type { LosslessJsonValue } from "./lossless-json.js";
 export {
   apiKeyAuth,
   bearerTokenAuth,
@@ -24,8 +29,6 @@ export {
   waitForTask,
 } from "./approvals.js";
 export {
-  defineTool,
-  runTool,
   textPart,
   toolCallPart,
   toolResultPart,
@@ -43,6 +46,7 @@ export type {
 } from "./auth.js";
 export type {
   HarnClientOptions,
+  McpRequestOptions,
   ListOptions,
   RequestOptions,
   StreamOptions,
@@ -55,11 +59,5 @@ export type {
   PollForApprovalOptions,
   WaitForTaskOptions,
 } from "./approvals.js";
-export type {
-  HarnTool,
-  HarnToolContext,
-  ToolHandler,
-  ToolResult,
-} from "./tools.js";
 export type * from "./types.js";
 export type { components, operations, paths } from "./generated/openapi.js";
