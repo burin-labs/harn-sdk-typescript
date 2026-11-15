@@ -108,3 +108,19 @@ from `@burin-labs/harn/native`; browser clients do not import it.
 
 See [the complete shared-fixture worker](../examples/tool-handler.ts) for all
 four operations and a declared application rejection.
+
+## Verify the installed package
+
+CI installs the released runtime pinned in [`.harn-version`](../.harn-version)
+and tests a fresh packed SDK against it. The signing adapter keeps its separate
+[compatibility pin](../scripts/signed-commit/.harn-version).
+
+After installing the pinned runtime, run the same product check:
+
+```sh
+pnpm check:generated-package --harn "$(command -v harn)" --receipt .artifacts/codegen-product.json
+```
+
+An invalid runtime path fails before packing. The product check exercises
+generation, HTTP clients, tasks, Express routes and native handlers, then
+retains the runtime identity and terminal result in the receipt.

@@ -1,15 +1,33 @@
 import { spawnSync } from "node:child_process";
-import { cp, mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { createReadStream } from "node:fs";
+import { cp, mkdir, mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const owner = fileURLToPath(new URL("../", import.meta.url));
-const temporary = await mkdtemp(join(tmpdir(), "harn-packed-bindings-"));
 const harnIndex = process.argv.indexOf("--harn");
 const harn = harnIndex < 0 ? undefined : process.argv[harnIndex + 1];
-if (harnIndex >= 0 && !harn) throw new Error("--harn requires an executable");
+const receiptIndex = process.argv.indexOf("--receipt");
+const receiptArgument = receiptIndex < 0 ? undefined : process.argv[receiptIndex + 1];
+if (receiptIndex >= 0 && (!receiptArgument || receiptArgument.startsWith("--"))) throw new Error("--receipt requires a path");
+const receipt = receiptArgument && resolve(receiptArgument);
+if (receipt) {
+  await mkdir(dirname(receipt), { recursive: true });
+  await writeFile(receipt, JSON.stringify({ status: "running", pending: 1, failing: [] }) + "\n");
+}
+if (harnIndex >= 0 && (!harn || harn.startsWith("--"))) throw new Error("--harn requires an executable");
+if (receiptArgument && (!harn || !isAbsolute(harn))) throw new Error("--receipt requires --harn with an absolute executable path");
+const temporary = await mkdtemp(join(tmpdir(), "harn-packed-bindings-"));
 let passed = false;
+
+async function sha256(path) {
+  const hash = createHash("sha256");
+  for await (const chunk of createReadStream(path)) hash.update(chunk);
+  return hash.digest("hex");
+}
 
 function run(program, args, cwd) {
   const result = spawnSync(program, args, { cwd, encoding: "utf8", timeout: 120000, maxBuffer: 4 * 1024 * 1024 });
@@ -18,6 +36,7 @@ function run(program, args, cwd) {
 }
 
 try {
+  const runtimeVersion = harn && JSON.parse(run(harn, ["version", "--json"], temporary));
   const package_ = JSON.parse(await readFile(join(owner, "package.json"), "utf8"));
   run("pnpm", ["pack", "--pack-destination", temporary], owner);
   const artifact = join(temporary, `${package_.name.replace(/^@/, "").replace("/", "-")}-${package_.version}.tgz`);
@@ -34,6 +53,16 @@ try {
     await cp(join(owner, "examples/express-generated-tools.ts"), join(temporary, "examples/express-generated-tools.ts"));
     await cp(join(owner, "test/packed-consumer/product.mjs"), join(temporary, "product.mjs"));
     process.stdout.write(run(process.execPath, ["product.mjs", harn], temporary));
+    if (receipt) {
+      const report = JSON.parse(await readFile(join(temporary, "product-report.json"), "utf8"));
+      assert.equal(report.packed_install, true);
+      assert.equal(report.pending, 0);
+      assert.deepEqual(report.failing, []);
+      await writeFile(receipt, JSON.stringify({ ...report, status: "passed",
+        runtime_version: runtimeVersion,
+        runtime_sha256: await sha256(harn), package_archive_sha256: await sha256(artifact),
+      }, null, 2) + "\n");
+    }
   }
   passed = true;
 } finally {
