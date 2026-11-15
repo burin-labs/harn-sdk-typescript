@@ -2,6 +2,9 @@
 
 TypeScript SDK for the Harn Agents API.
 
+Generate strict clients and native handlers from Harn's validated tool contracts
+with the [typed bindings guide](docs/CODEGEN.md).
+
 The package name is `@burin-labs/harn`. This repo vendors the OpenAPI 3.1
 contract and generated TypeScript protocol client from Harn v0.10.116.
 

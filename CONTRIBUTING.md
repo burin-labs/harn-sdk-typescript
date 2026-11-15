@@ -30,6 +30,7 @@ pnpm check:examples   # examples/ compile against the built types
 pnpm check:tests      # test/ typechecks
 pnpm build            # tsc into dist/
 pnpm pack:dry-run     # what npm would actually publish
+pnpm check:generated-package -- --harn /path/to/harn  # packed bindings against Harn
 ```
 
 `pnpm check:examples` is the one people skip and the one that catches the most.
@@ -54,8 +55,13 @@ Harn runtime ships new protocol artifacts, update the spec and regenerate in
 the same pull request.
 
 Hand-written code owns `HarnClient`, the auth helpers, SSE and WebSocket
-streaming, the approval and webhook helpers, and the tool definition helpers.
+streaming, the approval and webhook helpers, and the generated-binding runtime.
 Those are the files to change for behavior.
+
+The binding generator consumes Harn's normalized wire graph. Its protocol facts,
+schemas, and shared fixtures come from `harn dump-protocol-artifacts`; copy the
+producer's output rather than editing these projections. Use a Harn executable
+that supports `harn codegen` for the packed-consumer product check.
 
 ## Security defaults you should not weaken
 
@@ -83,8 +89,9 @@ Add a test alongside any change to these.
 
 `prepack` runs `pnpm build`, so the published tarball is always built from the
 committed source. Run `pnpm pack:dry-run` before publishing and read the file
-list: `package.json` restricts it to `dist`, `spec/openapi.yaml`, the README,
-and the license, and an accidental widening is easiest to catch there.
+list: `package.json` includes the generator executable, `dist`,
+`spec/openapi.yaml`, the binding guide, the README, and the license. An accidental
+widening is easiest to catch there.
 
 Nothing is on npm yet, so the first publish also creates the package name.
 Publish the first version under the `alpha` tag, not `latest`.

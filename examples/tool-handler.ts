@@ -1,18 +1,11 @@
-import { defineTool, runTool, toolResultPart } from "../src/index.js";
+import { ApplicationFailure } from "@burin-labs/harn";
+import { defineHandlers, serve } from "./pathological/generated/server.js";
 
-const lookupIssue = defineTool<{ repo: string; issue: number }, { title: string }>({
-  name: "github_issue_lookup",
-  description: "Look up a GitHub issue title.",
-  inputSchema: {
-    type: "object",
-    required: ["repo", "issue"],
-    properties: {
-      repo: { type: "string" },
-      issue: { type: "number" },
-    },
-  },
-  handler: async ({ repo, issue }) => ({ title: `${repo}#${issue}` }),
+const handlers = defineHandlers({
+  echo: ({ input }, { signal }) => { signal.throwIfAborted(); return input; },
+  mutate: ({ input }, { signal }) => { signal.throwIfAborted(); return input; },
+  reject: () => new ApplicationFailure({ enum: "Failure" as const, variant: "Rejected" as const, fields: ["rejected"] as const }),
+  scheduled: ({ input }, { signal }) => { signal.throwIfAborted(); return input; },
 });
 
-const result = await runTool(lookupIssue, { repo: "burin-labs/harn-sdk-typescript", issue: 4 });
-console.log(toolResultPart("call_1", result));
+serve(handlers, { maxConcurrency: 2 });

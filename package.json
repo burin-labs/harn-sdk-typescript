@@ -6,6 +6,9 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "harn-typescript-codegen": "./bin/harn-typescript-codegen.mjs"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -14,17 +17,28 @@
     "./protocol": {
       "types": "./dist/protocol.d.ts",
       "import": "./dist/protocol.js"
+    },
+    "./bindings": {
+      "types": "./dist/binding-runtime.d.ts",
+      "import": "./dist/binding-runtime.js"
+    },
+    "./native": {
+      "types": "./dist/native.d.ts",
+      "import": "./dist/native.js"
     }
   },
   "files": [
+    "bin",
     "dist",
     "spec/openapi.yaml",
+    "docs/CODEGEN.md",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check:built-package": "node scripts/check-built-package.mjs",
+    "check:generated-package": "node scripts/check-generated-package.mjs",
     "check:examples": "tsc -p tsconfig.examples.json",
     "check:examples:tsrs": "tsrs -p tsconfig.examples.json --noEmit --checkers 2",
     "check:tests": "tsc -p tsconfig.test.json",
@@ -37,7 +51,7 @@
     "prepack": "pnpm build",
     "publish:alpha": "npm publish --access public --tag alpha",
     "publish:latest": "npm publish --access public --tag latest",
-    "test": "vitest run",
+    "test": "pnpm build && vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "typecheck:tsrs": "tsrs -p tsconfig.json --noEmit --checkers 2",
     "version:alpha": "npm version prerelease --preid alpha",
@@ -62,11 +76,14 @@
     "@types/supertest": "^7.2.1",
     "express": "^5.3.0",
     "openapi-typescript": "^7.13.0",
-    "tsx": "^4.23.15",
     "supertest": "^7.3.1",
     "tsrs": "0.18.0-ts7.1.0-dev.20260929",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "vitest": "^5.0.5",
     "yaml": "^2.9.1"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.4.0"
   }
 }

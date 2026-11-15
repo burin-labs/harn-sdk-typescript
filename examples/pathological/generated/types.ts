@@ -1,0 +1,35 @@
+// Generated from harn-codegen/1.0. Do not edit.
+import type { HarnDecimal } from "@burin-labs/harn";
+
+export type BooleanOrInteger = Boolean | Integer;
+export type RecordOrRecord = Record_aad38bbc8c5e | Record_cb5e97957533;
+export type EchoInput = { readonly "input": Payload; };
+export type Record_f6748f5810fc = { readonly "id": Integer; readonly "name"?: String; };
+export type Float = number;
+export type Detail_67b2ad27461e = { readonly "token": String; };
+export type Payload = { readonly "amount": Decimal; readonly "branch": Branch; readonly "choice": Choice; readonly "context": Context; readonly "floating": Float; readonly "left": Left; readonly "names": SetOfString; readonly "nullable": StringOrNull; readonly "optional"?: String; readonly "optional_nullable"?: StringOrNull; readonly "pair": Tuple; readonly "properties": MapOfString; readonly "raw": Bytes; readonly "right": Right; readonly "scalars": SetOfBooleanOrInteger; readonly "sequence": Integer; readonly "tag": Literal_payload; readonly "tree": NodeOfInteger; };
+export type SetOfString = ReadonlySet<String>;
+export type Decimal = HarnDecimal;
+export type Record_cb5e97957533 = { readonly "kind": Literal_right; readonly "right": Boolean; };
+export type Left = { readonly "detail": Detail_67b2ad27461e; };
+export type Choice = { readonly enum: "Choice"; readonly variant: "Missing"; readonly fields: readonly []; } | { readonly enum: "Choice"; readonly variant: "Present"; readonly fields: readonly [NodeOfInteger]; };
+export type Branch = RecordOrRecord;
+export type Boolean = boolean;
+export type MapOfString = Readonly<Record<string, String>>;
+export type Literal_payload = "payload";
+export type Context = Record_f6748f5810fc;
+export type Bytes = Uint8Array;
+export type Right = { readonly "detail": Detail_6f4c473fa11d; };
+export type Literal_left = "left";
+export type NodeOfInteger = { readonly "next"?: NodeOfIntegerOrNull; readonly "value": Integer; };
+export type Tuple = readonly [String, Integer];
+export type StringOrNull = String | Null;
+export type Null = null;
+export type Failure = { readonly enum: "Failure"; readonly variant: "Rejected"; readonly fields: readonly [String]; };
+export type Literal_right = "right";
+export type Detail_6f4c473fa11d = { readonly "token": Integer; };
+export type SetOfBooleanOrInteger = ReadonlySet<BooleanOrInteger>;
+export type Integer = bigint;
+export type Record_aad38bbc8c5e = { readonly "kind": Literal_left; readonly "left": Integer; };
+export type String = string;
+export type NodeOfIntegerOrNull = NodeOfInteger | Null;

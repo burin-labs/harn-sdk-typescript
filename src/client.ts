@@ -5,6 +5,8 @@ import {
   warnForAuthenticatedCustomBaseUrl,
 } from "./base-url.js";
 import { HarnApiError } from "./errors.js";
+import { mcpRequest, mcpResponse } from "./mcp-rpc.js";
+import { parseLosslessJson, stringifyLosslessJson, type LosslessJsonValue } from "./lossless-json.js";
 import { HARN_PROTOCOL_VERSION } from "./protocol-client.js";
 import { streamJsonSse } from "./streaming.js";
 import type {
@@ -96,6 +98,10 @@ export interface RequestOptions {
   idempotencyKey?: string;
 }
 
+export interface McpRequestOptions extends RequestOptions {
+  requestId?: string;
+}
+
 export interface ListOptions extends RequestOptions {
   limit?: number;
   cursor?: string;
@@ -142,6 +148,16 @@ export class HarnClient {
 
   getHealth(options?: RequestOptions): Promise<Health> {
     return this.request("GET", "/health", { ...options, protocol: false });
+  }
+
+  /** Stable MCP uses the same HTTP client, authentication and host guard as resource APIs. */
+  async mcpRequest(method: string, params: Record<string, LosslessJsonValue>, options: McpRequestOptions = {}): Promise<LosslessJsonValue> {
+    const request = mcpRequest(method, params, options.headers, options.requestId);
+    const response = await this.rawRequest("POST", "/mcp", {
+      ...options, body: request.body, headers: request.headers, protocol: false, lossless: true,
+      accept: "application/json, text/event-stream", allowHttpError: true,
+    });
+    return mcpResponse(response, request.id);
   }
 
   getVersion(options?: RequestOptions): Promise<RuntimeVersion> {
@@ -692,11 +708,14 @@ export class HarnClient {
     const response = await this.fetchImpl(url, {
       method,
       headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body: options.body === undefined ? undefined : options.lossless ? stringifyLosslessJson(options.body) : JSON.stringify(options.body),
       signal: options.signal,
     });
-    if (!response.ok) {
-      throw new HarnApiError(response, await response.json().catch(() => undefined));
+    if (!response.ok && !options.allowHttpError) {
+      const error = options.lossless
+        ? await response.text().then(parseLosslessJson).catch(() => undefined)
+        : await response.json().catch(() => undefined);
+      throw new HarnApiError(response, error);
     }
     return response;
   }
@@ -721,6 +740,8 @@ export class HarnClient {
 // retained as a compatibility adapter for its original 72-operation surface.
 
 interface InternalRequestOptions extends RequestOptions {
+  allowHttpError?: boolean;
+  lossless?: boolean;
   accept?: string;
   body?: unknown;
   path?: Record<string, string>;

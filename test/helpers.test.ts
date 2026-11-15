@@ -1,12 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   apiKeyAuth,
-  defineTool,
   isApprovalRequired,
   oauth2DeviceFlow,
   parseApprovalWebhook,
   pollForApproval,
-  runTool,
   textPart,
   toolCallPart,
   toolResultPart,
@@ -79,15 +77,6 @@ describe("helpers", () => {
         { secret: "whsec_test", signature: "sha256=unused" },
       ),
     ).rejects.toThrow("raw request body");
-  });
-
-  it("defines and runs typed tools", async () => {
-    const tool = defineTool<{ value: number }, { doubled: number }>({
-      name: "double",
-      handler: ({ value }) => ({ doubled: value * 2 }),
-    });
-
-    await expect(runTool(tool, { value: 4 })).resolves.toEqual({ doubled: 8 });
   });
 
   it("preserves pathful OIDC issuer URLs and uses injectable polling clocks", async () => {

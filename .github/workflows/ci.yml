@@ -48,12 +48,28 @@ jobs:
           harn test publish_test.harn
       - run: pnpm check:protocol
       - run: pnpm typecheck
+      - run: pnpm build
       - run: pnpm check:examples
       - run: pnpm check:tests
       - run: pnpm test
-      - run: pnpm build
       - run: pnpm check:built-package
+      - name: Install code generation runtime
+        id: codegen-runtime
+        uses: burin-labs/harn/.github/actions/setup-harn@fb7275fa91979fd332edfcc7fdd5e70ce3026c2d
+        with:
+          version-file: .harn-version
+      - name: Verify packed generated bindings against released Harn
+        env:
+          HARN_BIN: ${{ steps.codegen-runtime.outputs.path }}
+        run: pnpm check:generated-package --harn "$HARN_BIN" --receipt .artifacts/codegen-product.json
       - run: pnpm pack:dry-run
+      - name: Retain code generation product receipt
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: codegen-product-node-${{ matrix.node }}
+          path: .artifacts/codegen-product.json
+          if-no-files-found: warn
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist-node-${{ matrix.node }}

@@ -12,40 +12,32 @@ export async function* parseSseStream(stream: ReadableStream<Uint8Array>): Async
   const decoder = new TextDecoder();
   let buffer = "";
   let current = emptyEvent();
+  let skipLf = false;
+  let completed = false;
 
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
+        completed = true;
         break;
       }
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split(/\r\n|\r|\n/);
-      buffer = lines.pop() ?? "";
-
-      for (const line of lines) {
-        const event = parseSseLine(line, current);
-        if (event) {
-          yield event;
-          current = emptyEvent();
-        }
+      for (const character of decoder.decode(value, { stream: true })) {
+        if (skipLf && character === "\n") { skipLf = false; continue; }
+        skipLf = character === "\r";
+        if (character !== "\r" && character !== "\n") { buffer += character; continue; }
+        const event = parseSseLine(buffer, current);
+        if (buffer === "") current = { id: current.id, data: [] };
+        buffer = "";
+        if (event) yield event;
       }
     }
 
-    buffer += decoder.decode();
-    if (buffer) {
-      const event = parseSseLine(buffer, current);
-      if (event) {
-        yield event;
-        current = emptyEvent();
-      }
-    }
-    if (current.data.length > 0) {
-      yield materializeEvent(current);
-    }
+    // An event is complete only after its blank line, including at EOF.
   } finally {
-    reader.releaseLock();
+    try { if (!completed) await reader.cancel(); }
+    finally { reader.releaseLock(); }
   }
 }
 
@@ -104,10 +96,10 @@ function parseSseLine(line: string, current: BufferedSseEvent): SseEvent | undef
   } else if (field === "event") {
     current.event = value;
   } else if (field === "id") {
-    current.id = value;
+    if (!value.includes("\0")) current.id = value;
   } else if (field === "retry") {
     const retry = Number(value);
-    if (Number.isInteger(retry) && retry >= 0) {
+    if (/^[0-9]+$/.test(value) && Number.isSafeInteger(retry)) {
       current.retry = retry;
     }
   }
